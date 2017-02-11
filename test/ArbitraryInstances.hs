@@ -1,11 +1,13 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module ArbitraryInstances () where
+module ArbitraryInstances (genTileArray, genMaybeTileArray) where
 
-import Test.QuickCheck (Arbitrary, arbitrary, elements, infiniteListOf)
+import Data.Array (Array, array)
+import Test.QuickCheck (Arbitrary, Gen, arbitrary, elements, infiniteListOf)
 
 import Board (Board, board)
 import Coordinate (Coordinate, coordinates)
 import Tile (Tile, tiles)
+import PartialBoard (PartialBoard, partialBoard)
 import Position (Position, positionsByColumn)
 
 instance Arbitrary Tile where
@@ -17,5 +19,14 @@ instance Arbitrary Coordinate where
 instance Arbitrary Position where
   arbitrary = elements positionsByColumn
 
+genTileArray :: Gen (Array Position Tile)
+genTileArray = fmap (array (minBound, maxBound) . zip positionsByColumn) $ infiniteListOf arbitrary
+
 instance Arbitrary Board where
-  arbitrary = fmap (board . zip positionsByColumn) $ infiniteListOf arbitrary
+  arbitrary = fmap board genTileArray
+
+genMaybeTileArray :: Gen (Array Position (Maybe Tile))
+genMaybeTileArray = fmap (array (minBound, maxBound) . zip positionsByColumn) $ infiniteListOf arbitrary
+
+instance Arbitrary PartialBoard where
+  arbitrary = fmap partialBoard genMaybeTileArray

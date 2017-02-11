@@ -12,7 +12,7 @@ module Board
   , numberOfVoltorbsAtColumn
   ) where
 
-import Data.Array (Array, array, (!))
+import Data.Array (Array, bounds, (!))
 
 import Coordinate
 import Position
@@ -22,8 +22,9 @@ import Tile
 data Board = Board (Array Position Tile)
 
 -- Constructor for a Board.
-board :: [(Position, Tile)] -> Board
-board as = Board $ array (minBound, maxBound) as
+board :: Array Position Tile -> Board
+board a | bounds a == (minBound, maxBound)  = Board a
+        | otherwise                         = error "Array does not have full bounds"
 
 -- Deconstructor for a Board.
 unBoard :: Board -> Array Position Tile

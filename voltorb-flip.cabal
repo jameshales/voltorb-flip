@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Board
                      , Coordinate
+                     , PartialBoard
                      , Position
                      , Tile
   build-depends:       base >= 4.7 && < 5
@@ -46,6 +47,7 @@ test-suite voltorb-flip-test
   other-modules:       ArbitraryInstances
                      , BoardSpec
                      , CoordinateSpec
+                     , PartialBoardSpec
                      , PositionSpec
                      , TileSpec
 

@@ -1,23 +1,22 @@
 module BoardSpec (spec) where
 
-import Data.Array (assocs, (//))
+import Data.Array ((//))
 import Data.Function (on)
 import Data.List (nubBy)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances ()
+import ArbitraryInstances (genTileArray)
 import Board
-import Position
-import Tile
+import Position (column, row)
+import Tile (sumOfTiles, numberOfVoltorbs)
 
 spec :: Spec
 spec = do
   describe "board" $ do
     it "is inverted by unBoard" $ property $ do
-      ts <- infiniteListOf arbitrary
-      let as = positionsByColumn `zip` ts
-      return $ assocs (unBoard (board as)) `shouldBe` as
+      a <- genTileArray
+      return $ unBoard (board a) `shouldBe` a
 
   describe "sumOfTilesAt" $
     it "returns the sumOfTiles in the tiles at the given list of positions" $ property $ do
@@ -26,7 +25,7 @@ spec = do
       let as' = nubBy ((==) `on` fst) as
       let ps  = map fst as'
       let ts  = map snd as'
-      let b'  = board $ assocs $ (unBoard b) // as'
+      let b'  = board $ (unBoard b) // as'
       return $ sumOfTilesAt b' ps `shouldBe` sumOfTiles ts
 
   describe "sumOfTilesAtRow" $
@@ -34,7 +33,7 @@ spec = do
       b     <- arbitrary
       c     <- arbitrary
       ts    <- vectorOf 5 arbitrary
-      let b' = board $ assocs $ (unBoard b) // (row c `zip` ts)
+      let b' = board $ (unBoard b) // (row c `zip` ts)
       return $ sumOfTilesAtRow b' c `shouldBe` sumOfTiles ts
 
   describe "sumOfTilesAtColumn" $
@@ -42,7 +41,7 @@ spec = do
       b     <- arbitrary
       c     <- arbitrary
       ts    <- vectorOf 5 arbitrary
-      let b' = board $ assocs $ (unBoard b) // (column c `zip` ts)
+      let b' = board $ (unBoard b) // (column c `zip` ts)
       return $ sumOfTilesAtColumn b' c `shouldBe` sumOfTiles ts
 
   describe "numberOfVoltorbsAt" $
@@ -52,7 +51,7 @@ spec = do
       let as' = nubBy ((==) `on` fst) as
       let ps  = map fst as'
       let ts  = map snd as'
-      let b'  = board $ assocs $ (unBoard b) // as'
+      let b'  = board $ (unBoard b) // as'
       return $ numberOfVoltorbsAt b' ps `shouldBe` numberOfVoltorbs ts
 
   describe "numberOfVoltorbsAtRow" $
@@ -60,7 +59,7 @@ spec = do
       b     <- arbitrary
       c     <- arbitrary
       ts    <- vectorOf 5 arbitrary
-      let b' = board $ assocs $ (unBoard b) // (row c `zip` ts)
+      let b' = board $ (unBoard b) // (row c `zip` ts)
       return $ numberOfVoltorbsAtRow b' c `shouldBe` numberOfVoltorbs ts
 
   describe "numberOfVoltorbsAtColumn" $
@@ -68,6 +67,5 @@ spec = do
       b     <- arbitrary
       c     <- arbitrary
       ts    <- vectorOf 5 arbitrary
-      let b' = board $ assocs $ (unBoard b) // (column c `zip` ts)
+      let b' = board $ (unBoard b) // (column c `zip` ts)
       return $ numberOfVoltorbsAtColumn b' c `shouldBe` numberOfVoltorbs ts
-

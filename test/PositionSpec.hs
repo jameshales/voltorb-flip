@@ -96,4 +96,3 @@ spec = do
       nub positionsByColumn `shouldBe` positionsByColumn
     it "returns a list of positions sorted by column then by row" $ do
       sortBy (comparing (\p -> (columnOf p, rowOf p))) positionsByColumn `shouldBe` positionsByColumn
-
