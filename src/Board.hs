@@ -1,5 +1,5 @@
 module Board
-  ( Board
+  ( Board ()
   , board
   , unBoard
   , tileAt
@@ -19,15 +19,15 @@ import Position
 import Tile
 
 -- A 5x5 Board of Tiles
-data Board = B (Array Position Tile)
+data Board = Board (Array Position Tile)
 
 -- Constructor for a Board.
 board :: [(Position, Tile)] -> Board
-board as = B $ array (minBound, maxBound) as
+board as = Board $ array (minBound, maxBound) as
 
 -- Deconstructor for a Board.
 unBoard :: Board -> Array Position Tile
-unBoard (B a) = a
+unBoard (Board a) = a
 
 -- Returns the Tile at the given Position of a Board.
 tileAt :: Board -> Position -> Tile

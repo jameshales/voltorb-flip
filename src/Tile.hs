@@ -1,5 +1,5 @@
 module Tile
-  ( Tile
+  ( Tile ()
   , tile
   , unTile
   , voltorb
@@ -9,7 +9,7 @@ module Tile
   ) where
 
 -- A Tile on a Board can be a 0 (Voltorb), 1, 2, or 3
-data Tile = T Int
+data Tile = Tile Int
   deriving (Eq, Ord, Show)
 
 instance Bounded Tile where
@@ -17,19 +17,19 @@ instance Bounded Tile where
   maxBound = tile 3
 
 instance Enum Tile where
-  toEnum         = tile
-  fromEnum (T x) = x
+  toEnum   = tile
+  fromEnum = unTile
 
 -- Constructor for a Tile.
 -- Returns a Tile for integers in the range [0, 3].
 -- Returns an error for integers outside of the range.
 tile :: Int -> Tile
-tile x | x >= 0 && x <= 3 = T x
+tile x | x >= 0 && x <= 3 = Tile x
        | otherwise        = error "Tile out of bounds"
 
 -- Deconstructor for a Tile.
 unTile :: Tile -> Int
-unTile (T x) = x
+unTile (Tile x) = x
 
 -- Voltorb (tile with value 0)
 voltorb :: Tile

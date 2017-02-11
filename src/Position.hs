@@ -1,5 +1,5 @@
 module Position
-  ( Position
+  ( Position ()
   , position
   , unPosition
   , columnOf
@@ -17,7 +17,7 @@ import Data.Array (Ix)
 import Coordinate
 
 -- A Position on a 5x5 Board
-data Position = P Coordinate Coordinate
+data Position = Position Coordinate Coordinate
   deriving (Ix, Eq, Ord, Show)
 
 instance Bounded Position where
@@ -31,19 +31,19 @@ instance Enum Position where
 
 -- Constructor for a Position.
 position :: Coordinate -> Coordinate -> Position
-position = P
+position = Position
 
 -- Deconstructor for a Position.
 unPosition :: Position -> (Coordinate, Coordinate)
-unPosition (P x y) = (x, y)
+unPosition (Position x y) = (x, y)
 
 -- Returns the x-coordinate or column of a Position.
 columnOf :: Position -> Coordinate
-columnOf (P x _) = x
+columnOf = fst . unPosition
 
 -- Returns the y-coordinate or row of a Position.
 rowOf :: Position -> Coordinate
-rowOf (P _ y) = y
+rowOf = snd . unPosition
 
 -- Returns a list of all Positions with the given row Coordinate, in ascending
 -- order of column Coordinate.
