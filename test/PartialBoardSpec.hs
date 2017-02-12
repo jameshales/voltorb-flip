@@ -55,7 +55,7 @@ spec = do
         \pb b -> let pb' = snd (flipTilesAt pb b (findNonTrivialTiles b)) in isComplete pb' b `shouldBe` True
     context "given a PartialBoard with a non-trivial Tile unflipped" $
       it "returns False" $ property $ do
-        b  <- arbitrary
-        ps <- sublistOf $ findNonTrivialTiles b
+        b  <- arbitrary `suchThat` (not . null . findNonTrivialTiles)
+        ps <- let ns = findNonTrivialTiles b in sublistOf ns `suchThat` (/=) ns
         let pb = snd $ flipTilesAt emptyBoard b ps
-        return $ not (null ps) ==> isComplete pb b `shouldBe` False
+        return $ isComplete pb b `shouldBe` False
