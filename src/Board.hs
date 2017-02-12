@@ -14,12 +14,13 @@ module Board
 
 import Data.Array (Array, bounds, (!))
 
-import Coordinate
-import Position
-import Tile
+import Coordinate (Coordinate)
+import Position (Position, column, row)
+import Tile (Tile, numberOfVoltorbs, sumOfTiles)
 
 -- A 5x5 Board of Tiles
 data Board = Board (Array Position Tile)
+  deriving (Eq, Ord, Show)
 
 -- Constructor for a Board.
 board :: Array Position Tile -> Board

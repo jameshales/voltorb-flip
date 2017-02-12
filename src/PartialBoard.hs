@@ -6,11 +6,12 @@ module PartialBoard
   ) where
 
 import Data.Array (Array, array, bounds)
-import Tile
-import Position
+import Tile (Tile)
+import Position (Position, positionsByColumn)
 
 -- A partially flipped 5x5 Board of Tiles
 data PartialBoard = PartialBoard (Array Position (Maybe Tile))
+  deriving (Eq, Ord, Show)
 
 -- Constructor for a PartialBoard
 partialBoard :: Array Position (Maybe Tile) -> PartialBoard

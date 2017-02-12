@@ -14,7 +14,7 @@ module Position
 
 import Data.Array (Ix)
 
-import Coordinate
+import Coordinate (Coordinate, coordinate, coordinates, unCoordinate)
 
 -- A Position on a 5x5 Board
 data Position = Position Coordinate Coordinate
