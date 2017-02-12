@@ -3,6 +3,7 @@ module Tile
   , tile
   , unTile
   , voltorb
+  , isNonTrivial
   , tiles
   , sumOfTiles
   , numberOfVoltorbs
@@ -34,6 +35,10 @@ unTile (Tile x) = x
 -- Voltorb (tile with value 0)
 voltorb :: Tile
 voltorb = tile 0
+
+-- Returns true iff the given Tile is a 2- or 3-Tile
+isNonTrivial :: Tile -> Bool
+isNonTrivial = (>= 2) . unTile
 
 -- A list of all Tiles in ascending order.
 tiles :: [Tile]

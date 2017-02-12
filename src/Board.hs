@@ -4,6 +4,7 @@ module Board
   , unBoard
   , tileAt
   , tilesAt
+  , findNonTrivialTiles
   , sumOfTilesAt
   , sumOfTilesAtRow
   , sumOfTilesAtColumn
@@ -15,8 +16,8 @@ module Board
 import Data.Array (Array, bounds, (!))
 
 import Coordinate (Coordinate)
-import Position (Position, column, row)
-import Tile (Tile, numberOfVoltorbs, sumOfTiles)
+import Position (Position, column, positionsByColumn, row)
+import Tile (Tile, isNonTrivial, numberOfVoltorbs, sumOfTiles)
 
 -- A 5x5 Board of Tiles
 data Board = Board (Array Position Tile)
@@ -38,6 +39,10 @@ tileAt b p = unBoard b ! p
 -- Returns the Tiles in the given list of Positions.
 tilesAt :: Board -> [Position] -> [Tile]
 tilesAt b = map $ tileAt b
+
+-- Finds the Positions that contain 2/3-Tiles.
+findNonTrivialTiles :: Board -> [Position]
+findNonTrivialTiles b = filter (isNonTrivial . tileAt b) positionsByColumn
 
 -- Returns the sum of all Tile values in the given Positions of a Board.
 sumOfTilesAt :: Board -> [Position] -> Int

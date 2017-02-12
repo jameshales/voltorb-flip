@@ -48,6 +48,20 @@ spec = do
         i <- choose (0, 3)
         return $ unTile (tile i) `shouldBe` i
 
+  describe "isNonTrivial" $ do
+    context "given a 0-Tile" $ do
+      it "returns False" $
+        isNonTrivial (tile 0) `shouldBe` False
+    context "given a 1-Tile" $ do
+      it "returns False" $
+        isNonTrivial (tile 1) `shouldBe` False
+    context "given a 2-Tile" $ do
+      it "returns True" $
+        isNonTrivial (tile 2) `shouldBe` True
+    context "given a 3-Tile" $ do
+      it "returns True" $
+        isNonTrivial (tile 3) `shouldBe` True
+
   describe "tiles" $ do
     it "returns a list of 4 tiles" $ do
       length tiles `shouldBe` 4
@@ -57,15 +71,21 @@ spec = do
       sort tiles `shouldBe` tiles
 
   describe "sumOfTiles" $ do
-    it "returns 0 for an empty list" $ do
-      sumOfTiles [] `shouldBe` 0
-    it "increments the sum by the value of a tile as the tile is consed to the given list" $ property $
-      \t ts -> sumOfTiles (t:ts) `shouldBe` (unTile t + sumOfTiles ts)
+    context "given an empty list of Tiles" $
+      it "returns 0" $
+        sumOfTiles [] `shouldBe` 0
+    context "given a non-empty list of Tiles" $
+      it "adds the value of the Tile at the head of the list to the sumOfTiles of the tail of the list" $ property $
+        \t ts -> sumOfTiles (t:ts) `shouldBe` (unTile t + sumOfTiles ts)
 
   describe "numberOfVoltorbs" $ do
-    it "returns 0 for an empty list" $ do
-      numberOfVoltorbs [] `shouldBe` 0
-    it "returns the same count if a non-Voltorb tile is consed to the given list" $ property $
-      \t ts -> t /= voltorb ==> numberOfVoltorbs (t:ts) `shouldBe` numberOfVoltorbs ts
-    it "increments the count of a Voltorb tile is consed to the given list" $ property $
-      \ts -> numberOfVoltorbs (voltorb:ts) `shouldBe` numberOfVoltorbs ts + 1
+    context "given an empty list of Tiles" $
+      it "returns 0" $ do
+        numberOfVoltorbs [] `shouldBe` 0
+    context "given a non-empty list of Tiles" $ do
+      context "if the head of the list is a Voltorb" $
+        it "returns the numberOfVoltorbs in the tail of the list" $ property $
+          \t ts -> t /= voltorb ==> numberOfVoltorbs (t:ts) `shouldBe` numberOfVoltorbs ts
+      context "if the head of the list isn't a Voltorb" $
+        it "adds 1 to the numberOfVoltorbs in the tail of the list" $ property $
+          \ts -> numberOfVoltorbs (voltorb:ts) `shouldBe` numberOfVoltorbs ts + 1
