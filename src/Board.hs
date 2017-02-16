@@ -16,12 +16,22 @@ module Board
 import Data.Array (Array, bounds, (!))
 
 import Coordinate (Coordinate)
-import Position (Position, column, positionsByColumn, row)
-import Tile (Tile, isNonTrivial, numberOfVoltorbs, sumOfTiles)
+import Position (Position, column, positionsByColumn, row, rows)
+import Tile (Tile, isNonTrivial, numberOfVoltorbs, sumOfTiles, unTile)
 
 -- A 5x5 Board of Tiles
 data Board = Board (Array Position Tile)
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
+
+instance Show Board where
+  show b =
+    unlines $ map (map $ showTile . tileAt b) rows
+      where showTile t = case unTile t of
+              0 -> '0'
+              1 -> '1'
+              2 -> '2'
+              3 -> '3'
+              _ -> undefined
 
 -- Constructor for a Board.
 board :: Array Position Tile -> Board
