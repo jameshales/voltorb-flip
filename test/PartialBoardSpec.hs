@@ -1,13 +1,13 @@
 module PartialBoardSpec (spec) where
 
-import Data.Array ((!), (//))
+import Data.Array (assocs, (!), (//))
 import Data.Function (on)
 import Data.List (nubBy)
 import Test.Hspec
 import Test.QuickCheck
 
 import ArbitraryInstances (genMaybeTileArray)
-import Board (findNonTrivialTiles, tileAt, tilesAt)
+import Board (findNonTrivialTiles, tileAt, tilesAt, unBoard)
 import PartialBoard
 
 spec :: Spec
@@ -48,6 +48,23 @@ spec = do
       \pb b ps -> maybeTilesAt (snd $ flipTilesAt pb b ps) ps `shouldBe` map Just (tilesAt b ps)
     it "otherwise leaves the PartialBoard unchanged" $ property $ do
       \pb b ps p -> not (p `elem` ps) ==> maybeTileAt (snd $ flipTilesAt pb b ps) p `shouldBe` maybeTileAt pb p 
+
+  describe "isConsistent" $ do
+    context "given an empty PartialBoard" $
+      it "returns True" $ property $ do
+        \b -> isConsistent emptyBoard b `shouldBe` True
+    context "given a PartialBoard with all of the flipped Tiles equal to the corresponding Tiles in the given Board" $
+      it "returns True" $ property $ do
+        b <- arbitrary
+        pb <- fmap (partialBoard . (unPartialBoard emptyBoard //) . map (\(p, t) -> (p, Just t))) $ sublistOf $ assocs $ unBoard b
+        return $ isConsistent pb b `shouldBe` True
+    context "given a PartialBoard with some of the flipped Tiles not equal to the corresponding Tiles in the given Board" $
+      it "returns False" $ property $ do
+        b   <- arbitrary
+        p   <- arbitrary
+        t   <- arbitrary `suchThat` (tileAt b p /=)
+        pb  <- fmap (partialBoard . (// [(p, Just t)]) . unPartialBoard) arbitrary
+        return $ isConsistent pb b `shouldBe` False
 
   describe "isComplete" $ do
     context "given a PartialBoard with all of the non-trivial Tiles flipped" $

@@ -7,6 +7,7 @@ module PartialBoard
   , maybeTilesAt
   , flipTileAt
   , flipTilesAt
+  , isConsistent
   , isComplete
   ) where
 
@@ -64,6 +65,11 @@ flipTileAt pb b p = (t, partialBoard $ unPartialBoard pb // [(p, Just t)])
 flipTilesAt :: PartialBoard -> Board -> [Position] -> ([Tile], PartialBoard)
 flipTilesAt pb b ps = foldr flipTileAt' (([], pb)) ps
   where flipTileAt' p (ts, pb') = let (t, pb'') = flipTileAt pb' b p in (t:ts, pb'')
+
+-- Tests whether the flipped Tiles in the PartialBoard are consistent with the
+-- given Board.
+isConsistent :: PartialBoard -> Board -> Bool
+isConsistent pb b = all (\p -> maybe True (== tileAt b p) $ maybeTileAt pb p) $ positionsByColumn
 
 -- Tests whether the PartialBoard has flipped all of the non-trivial Tiles in
 -- the given Board.
