@@ -13,12 +13,25 @@ module PartialBoard
 import Data.Array (Array, array, bounds, (!), (//))
 
 import Board (Board, findNonTrivialTiles, tileAt)
-import Tile (Tile)
-import Position (Position, positionsByColumn)
+import Tile (Tile, unTile)
+import Position (Position, positionsByColumn, rows)
 
 -- A partially flipped 5x5 Board of Tiles
 data PartialBoard = PartialBoard (Array Position (Maybe Tile))
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
+
+instance Show PartialBoard where
+  show pb =
+    unlines $ map (map $ showTile . maybeTileAt pb) rows
+      where showTile mt = case mt of
+              Just t ->
+                case unTile t of
+                  0 -> '0'
+                  1 -> '1'
+                  2 -> '2'
+                  3 -> '3'
+                  _ -> undefined
+              Nothing -> '-'
 
 -- Constructor for a PartialBoard
 partialBoard :: Array Position (Maybe Tile) -> PartialBoard
