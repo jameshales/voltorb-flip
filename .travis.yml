@@ -30,11 +30,17 @@ before_install:
 - mkdir -p ~/.local/bin
 - export PATH=$HOME/.local/bin:$PATH
 - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+- cabal install codecov-haskell
 
 install:
 # Build dependencies
 - stack --no-terminal --install-ghc test --only-dependencies
 
 script:
-# Build the package, its tests, and its docs and run the tests
-- stack --no-terminal test --haddock --no-haddock-deps
+# Build the package, its tests, and its docs, run the tests, and generate a
+# code coverage report
+- stack --no-terminal test --haddock --no-haddock-deps --coverage
+
+after_script:
+# Upload code coverage report to codecov.io
+- codecov-haskell
