@@ -43,4 +43,4 @@ script:
 
 after_script:
 # Upload code coverage report to codecov.io
-- codecov-haskell
+- codecov-haskell voltorb-flip-test
