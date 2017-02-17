@@ -37,6 +37,7 @@ instance Show Board where
 board :: Array Position Tile -> Board
 board a | bounds a == (minBound, maxBound)  = Board a
         | otherwise                         = error "Array does not have full bounds"
+-- board = Board
 
 -- Deconstructor for a Board.
 unBoard :: Board -> Array Position Tile

@@ -1,6 +1,7 @@
 module PartialBoardSpec (spec) where
 
-import Data.Array (assocs, (!), (//))
+import Control.Exception (evaluate)
+import Data.Array (assocs, listArray, (!), (//))
 import Data.Function (on)
 import Data.List (nubBy)
 import Test.Hspec
@@ -12,10 +13,18 @@ import PartialBoard
 
 spec :: Spec
 spec = do
-  describe "partialBoard" $
-    it "is inverted by unPartialBoard" $ property $ do
-      a <- genMaybeTileArray
-      return $ unPartialBoard (partialBoard a) `shouldBe` a
+  describe "partialBoard" $ do
+    context "given a valid Array of Maybe Tiles" $ do
+      it "is inverted by unPartialBoard" $ property $ do
+        a <- genMaybeTileArray
+        return $ unPartialBoard (partialBoard a) `shouldBe` a
+    context "given an Array with bounds less than (minBound, maxBound)" $ do
+      it "returns an error" $ property $ do
+        let invalidBounds (a, b) = a /= minBound || b /= maxBound
+        bounds  <- arbitrary `suchThat` invalidBounds
+        ts      <- vectorOf 25 arbitrary
+        let arr  = listArray bounds ts
+        return $ evaluate (partialBoard arr) `shouldThrow` errorCall "Array does not have full bounds"
 
   describe "emptyBoard" $
     it "contains Nothing" $ property $ do

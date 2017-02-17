@@ -1,6 +1,7 @@
 module BoardSpec (spec) where
 
-import Data.Array ((//))
+import Control.Exception (evaluate)
+import Data.Array (listArray, (//))
 import Data.Function (on)
 import Data.List (nubBy, (\\))
 import Test.Hspec
@@ -14,9 +15,17 @@ import Tile (isNonTrivial, numberOfVoltorbs, sumOfTiles)
 spec :: Spec
 spec = do
   describe "board" $ do
-    it "is inverted by unBoard" $ property $ do
-      a <- genTileArray
-      return $ unBoard (board a) `shouldBe` a
+    context "given a valid Array of Tiles" $ do
+      it "is inverted by unBoard" $ property $ do
+        a <- genTileArray
+        return $ unBoard (board a) `shouldBe` a
+    context "given an Array with bounds less than (minBound, maxBound)" $ do
+      it "returns an error" $ property $ do
+        let invalidBounds (a, b) = a /= minBound || b /= maxBound
+        bounds  <- arbitrary `suchThat` invalidBounds
+        ts      <- vectorOf 25 arbitrary
+        let arr  = listArray bounds ts
+        return $ evaluate (board arr) `shouldThrow` errorCall "Array does not have full bounds"
 
   describe "findNonTrivialTiles" $ do
     it "returns a list of Positions such that every Position in the list contains a non-trivial Tile" $ property $ do

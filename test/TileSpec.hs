@@ -1,6 +1,6 @@
 module TileSpec (spec) where
 
-import Control.Exception (evaluate)
+import Control.Exception (ErrorCall, evaluate)
 import Data.List (nub, sort)
 import Test.Hspec
 import Test.QuickCheck
@@ -8,24 +8,27 @@ import Test.QuickCheck
 import ArbitraryInstances ()
 import Tile
 
+outOfBoundsError :: Selector ErrorCall
+outOfBoundsError = errorCall "Tile out of bounds"
+
 spec :: Spec
 spec = do
   describe "instance Enum Tile" $ do
     describe "succ" $ do
       it "returns an error on maxBound" $ do
-        evaluate (succ (maxBound :: Tile)) `shouldThrow` anyException
+        evaluate (succ (maxBound :: Tile)) `shouldThrow` outOfBoundsError
     describe "pred" $ do
       it "returns an error on minBound" $ do
-        evaluate (pred (minBound :: Tile)) `shouldThrow` anyException
+        evaluate (pred (minBound :: Tile)) `shouldThrow` outOfBoundsError
     describe "toEnum" $ do
       context "when the value is less than 0" $ do
         it "returns an error" $ property $ do
           i <- choose (minBound, 0)
-          return $ evaluate (toEnum i :: Tile) `shouldThrow` anyException
+          return $ evaluate (toEnum i :: Tile) `shouldThrow` outOfBoundsError
       context "when the value is greater than 3" $ do
         it "returns an error" $ property $ do
           i <- choose (4, maxBound)
-          return $ evaluate (toEnum i :: Tile) `shouldThrow` anyException
+          return $ evaluate (toEnum i :: Tile) `shouldThrow` outOfBoundsError
       context "otherwise" $ do
         it "is inverted by fromEnum" $ property $ do
           i <- choose (0, 3)
@@ -38,11 +41,11 @@ spec = do
     context "when the value is less than 0" $ do
       it "returns an error" $ property $ do
         i <- choose (minBound, 0)
-        return $ evaluate (tile i) `shouldThrow` anyException
+        return $ evaluate (tile i) `shouldThrow` outOfBoundsError
     context "when the value is greater than 3" $ do
       it "returns an error" $ property $ do
         i <- choose (4, maxBound)
-        return $ evaluate (tile i) `shouldThrow` anyException
+        return $ evaluate (tile i) `shouldThrow` outOfBoundsError
     context "otherwise" $ do
       it "is inverted by unTile" $ property $ do
         i <- choose (0, 3)

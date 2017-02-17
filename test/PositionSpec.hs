@@ -1,6 +1,6 @@
 module PositionSpec (spec) where
 
-import Control.Exception (evaluate)
+import Control.Exception (ErrorCall, evaluate)
 import Data.List (nub, sort, sortBy)
 import Data.Ord (comparing)
 import Test.Hspec
@@ -9,24 +9,27 @@ import Test.QuickCheck
 import ArbitraryInstances ()
 import Position
 
+outOfBoundsError :: Selector ErrorCall
+outOfBoundsError = errorCall "Position out of bounds"
+
 spec :: Spec
 spec = do
   describe "instance Enum Position" $ do
     describe "succ" $ do
       it "returns an error on maxBound" $ do
-        evaluate (succ maxBound :: Position) `shouldThrow` anyException
+        evaluate (succ maxBound :: Position) `shouldThrow` outOfBoundsError
     describe "pred" $ do
       it "returns an error on minBound" $ do
-        evaluate (pred minBound :: Position) `shouldThrow` anyException
+        evaluate (pred minBound :: Position) `shouldThrow` outOfBoundsError
     describe "toEnum" $ do
       context "when the value is less than 0" $ do
         it "returns an error" $ property $ do
           i <- choose (minBound, 0)
-          return $ evaluate (toEnum i :: Position) `shouldThrow` anyException
+          return $ evaluate (toEnum i :: Position) `shouldThrow` outOfBoundsError
       context "when the value is greater than 24" $ do
         it "returns an error" $ property $ do
           i <- choose (25, maxBound)
-          return $ evaluate (toEnum i :: Position) `shouldThrow` anyException
+          return $ evaluate (toEnum i :: Position) `shouldThrow` outOfBoundsError
       context "otherwise" $ do
         it "is inverted by fromEnum" $ property $ do
           i <- choose (0, 24)

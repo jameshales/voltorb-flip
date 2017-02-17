@@ -1,6 +1,6 @@
 module CoordinateSpec (spec) where
 
-import Control.Exception (evaluate)
+import Control.Exception (ErrorCall, evaluate)
 import Data.List (nub, sort)
 import Test.Hspec
 import Test.QuickCheck
@@ -8,24 +8,27 @@ import Test.QuickCheck
 import ArbitraryInstances ()
 import Coordinate
 
+outOfBoundsError :: Selector ErrorCall
+outOfBoundsError = errorCall "Coordinate out of bounds"
+
 spec :: Spec
 spec = do
   describe "instance Enum Coordinate" $ do
     describe "succ" $ do
       it "returns an error on maxBound" $ do
-        evaluate (succ (maxBound :: Coordinate)) `shouldThrow` anyException
+        evaluate (succ (maxBound :: Coordinate)) `shouldThrow` outOfBoundsError
     describe "pred" $ do
       it "returns an error on minBound" $ do
-        evaluate (pred (minBound :: Coordinate)) `shouldThrow` anyException
+        evaluate (pred (minBound :: Coordinate)) `shouldThrow` outOfBoundsError
     describe "toEnum" $ do
       context "when the value is less than 0" $ do
         it "returns an error" $ property $ do
           i <- choose (minBound, 0)
-          return $ evaluate (toEnum i :: Coordinate) `shouldThrow` anyException
+          return $ evaluate (toEnum i :: Coordinate) `shouldThrow` outOfBoundsError
       context "when the value is greater than 4" $ do
         it "returns an error" $ property $ do
           i <- choose (5, maxBound)
-          return $ evaluate (toEnum i :: Coordinate) `shouldThrow` anyException
+          return $ evaluate (toEnum i :: Coordinate) `shouldThrow` outOfBoundsError
       context "otherwise" $ do
         it "is inverted by fromEnum" $ property $ do
           i <- choose (0, 4)
