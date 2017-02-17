@@ -14,6 +14,7 @@ module Board
   ) where
 
 import Data.Array (Array, bounds, (!))
+import Data.Char (intToDigit)
 
 import Coordinate (Coordinate)
 import Position (Position, column, positionsByColumn, row, rows)
@@ -26,12 +27,7 @@ data Board = Board (Array Position Tile)
 instance Show Board where
   show b =
     unlines $ map (map $ showTile . tileAt b) rows
-      where showTile t = case unTile t of
-              0 -> '0'
-              1 -> '1'
-              2 -> '2'
-              3 -> '3'
-              _ -> undefined
+      where showTile = intToDigit . unTile
 
 -- Constructor for a Board.
 board :: Array Position Tile -> Board
