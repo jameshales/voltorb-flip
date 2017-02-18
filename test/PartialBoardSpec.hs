@@ -1,14 +1,14 @@
 module PartialBoardSpec (spec) where
 
 import Control.Exception (evaluate)
-import Data.Array (assocs, listArray, (!), (//))
+import Data.Array (listArray, (!), (//))
 import Data.Function (on)
 import Data.List (nubBy)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances (genMaybeTileArray)
-import Board (findNonTrivialTiles, tileAt, tilesAt, unBoard)
+import ArbitraryInstances
+import Board (tileAt, tilesAt)
 import PartialBoard
 
 spec :: Spec
@@ -64,24 +64,19 @@ spec = do
         \b -> isConsistent emptyBoard b `shouldBe` True
     context "given a PartialBoard with all of the flipped Tiles equal to the corresponding Tiles in the given Board" $
       it "returns True" $ property $ do
-        b <- arbitrary
-        pb <- fmap (partialBoard . (unPartialBoard emptyBoard //) . map (\(p, t) -> (p, Just t))) $ sublistOf $ assocs $ unBoard b
+        (b, pb) <- genConsistentPartialBoard
         return $ isConsistent pb b `shouldBe` True
     context "given a PartialBoard with some of the flipped Tiles not equal to the corresponding Tiles in the given Board" $
       it "returns False" $ property $ do
-        b   <- arbitrary
-        p   <- arbitrary
-        t   <- arbitrary `suchThat` (tileAt b p /=)
-        pb  <- fmap (partialBoard . (// [(p, Just t)]) . unPartialBoard) arbitrary
+        (b, pb) <- genInconsistentPartialBoard
         return $ isConsistent pb b `shouldBe` False
 
   describe "isComplete" $ do
     context "given a PartialBoard with all of the non-trivial Tiles flipped" $
       it "returns True" $ property $ do
-        \pb b -> let pb' = snd (flipTilesAt pb b (findNonTrivialTiles b)) in isComplete pb' b `shouldBe` True
+        (b, pb) <- genCompletePartialBoard
+        return $ isComplete pb b `shouldBe` True
     context "given a PartialBoard with a non-trivial Tile unflipped" $
       it "returns False" $ property $ do
-        b  <- arbitrary `suchThat` (not . null . findNonTrivialTiles)
-        ps <- let ns = findNonTrivialTiles b in sublistOf ns `suchThat` (/=) ns
-        let pb = snd $ flipTilesAt emptyBoard b ps
+        (b, pb) <- genIncompletePartialBoard
         return $ isComplete pb b `shouldBe` False

@@ -14,7 +14,7 @@ module PartialBoard
 import Data.Array (Array, array, bounds, (!), (//))
 import Data.Char (intToDigit)
 
-import Board (Board, findNonTrivialTiles, tileAt)
+import Board (Board, findRequiredTiles, tileAt)
 import Tile (Tile, unTile)
 import Position (Position, positionsByColumn, rows)
 
@@ -67,4 +67,4 @@ isConsistent pb b = all (\p -> maybe True (== tileAt b p) $ maybeTileAt pb p) $ 
 -- Tests whether the PartialBoard has flipped all of the non-trivial Tiles in
 -- the given Board.
 isComplete :: PartialBoard -> Board -> Bool
-isComplete pb b = all (\p -> maybeTileAt pb p == Just (tileAt b p)) $  findNonTrivialTiles b
+isComplete pb b = all (\p -> maybeTileAt pb p == Just (tileAt b p)) $  findRequiredTiles b

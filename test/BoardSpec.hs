@@ -10,7 +10,7 @@ import Test.QuickCheck
 import ArbitraryInstances (genTileArray)
 import Board
 import Position (column, positionsByColumn, row)
-import Tile (isNonTrivial, numberOfVoltorbs, sumOfTiles)
+import Tile (isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
 
 spec :: Spec
 spec = do
@@ -27,11 +27,17 @@ spec = do
         let arr  = listArray bounds ts
         return $ evaluate (board arr) `shouldThrow` errorCall "Array does not have full bounds"
 
-  describe "findNonTrivialTiles" $ do
+  describe "findOptionalTiles" $ do
+    it "returns a list of Positions such that every Position in the list contains an optional Tile" $ property $ do
+      \b -> findOptionalTiles b `shouldSatisfy` all (isOptional . tileAt b)
+    it "returns a list of Positions such that every Position not in the list contains a non-optional Tile" $ property $ do
+      \b -> positionsByColumn \\ findOptionalTiles b `shouldSatisfy` all (not . isOptional . tileAt b)
+
+  describe "findRequiredTiles" $ do
     it "returns a list of Positions such that every Position in the list contains a non-trivial Tile" $ property $ do
-      \b -> findNonTrivialTiles b `shouldSatisfy` all (isNonTrivial . tileAt b)
+      \b -> findRequiredTiles b `shouldSatisfy` all (isRequired . tileAt b)
     it "returns a list of Positions such that every Position not in the list contains a trivial Tile" $ property $ do
-      \b -> positionsByColumn \\ findNonTrivialTiles b `shouldSatisfy` all (not . isNonTrivial . tileAt b)
+      \b -> positionsByColumn \\ findRequiredTiles b `shouldSatisfy` all (not . isRequired . tileAt b)
 
   describe "sumOfTilesAt" $
     it "returns the sumOfTiles in the tiles at the given list of positions" $ property $ do

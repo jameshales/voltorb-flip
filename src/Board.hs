@@ -4,7 +4,8 @@ module Board
   , unBoard
   , tileAt
   , tilesAt
-  , findNonTrivialTiles
+  , findOptionalTiles
+  , findRequiredTiles
   , sumOfTilesAt
   , sumOfTilesAtRow
   , sumOfTilesAtColumn
@@ -18,7 +19,7 @@ import Data.Char (intToDigit)
 
 import Coordinate (Coordinate)
 import Position (Position, column, positionsByColumn, row, rows)
-import Tile (Tile, isNonTrivial, numberOfVoltorbs, sumOfTiles, unTile)
+import Tile (Tile, isOptional, isRequired, numberOfVoltorbs, sumOfTiles, unTile)
 
 -- A 5x5 Board of Tiles
 data Board = Board (Array Position Tile)
@@ -47,9 +48,15 @@ tileAt b p = unBoard b ! p
 tilesAt :: Board -> [Position] -> [Tile]
 tilesAt b = map $ tileAt b
 
+-- Finds the Positions that contain 1-Tiles.
+findOptionalTiles :: Board -> [Position]
+findOptionalTiles b = filter (isOptional . tileAt b) positionsByColumn
+
 -- Finds the Positions that contain 2/3-Tiles.
-findNonTrivialTiles :: Board -> [Position]
-findNonTrivialTiles b = filter (isNonTrivial . tileAt b) positionsByColumn
+findRequiredTiles :: Board -> [Position]
+findRequiredTiles b = filter (isRequired . tileAt b) positionsByColumn
+
+-- Finds the Positions
 
 -- Returns the sum of all Tile values in the given Positions of a Board.
 sumOfTilesAt :: Board -> [Position] -> Int

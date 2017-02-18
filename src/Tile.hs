@@ -3,7 +3,8 @@ module Tile
   , tile
   , unTile
   , voltorb
-  , isNonTrivial
+  , isOptional
+  , isRequired
   , tiles
   , sumOfTiles
   , numberOfVoltorbs
@@ -36,9 +37,13 @@ unTile (Tile x) = x
 voltorb :: Tile
 voltorb = tile 0
 
+-- Returns true iff the given Tile is a 1-Tile.
+isOptional :: Tile -> Bool
+isOptional = (== 1) . unTile
+
 -- Returns true iff the given Tile is a 2- or 3-Tile
-isNonTrivial :: Tile -> Bool
-isNonTrivial = (>= 2) . unTile
+isRequired :: Tile -> Bool
+isRequired = (>= 2) . unTile
 
 -- A list of all Tiles in ascending order.
 tiles :: [Tile]

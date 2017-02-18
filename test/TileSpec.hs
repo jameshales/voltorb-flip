@@ -51,19 +51,33 @@ spec = do
         i <- choose (0, 3)
         return $ unTile (tile i) `shouldBe` i
 
-  describe "isNonTrivial" $ do
+  describe "isOptional" $ do
     context "given a 0-Tile" $ do
       it "returns False" $
-        isNonTrivial (tile 0) `shouldBe` False
+        isOptional (tile 0) `shouldBe` False
     context "given a 1-Tile" $ do
       it "returns False" $
-        isNonTrivial (tile 1) `shouldBe` False
+        isOptional (tile 1) `shouldBe` True
     context "given a 2-Tile" $ do
       it "returns True" $
-        isNonTrivial (tile 2) `shouldBe` True
+        isOptional (tile 2) `shouldBe` False
     context "given a 3-Tile" $ do
       it "returns True" $
-        isNonTrivial (tile 3) `shouldBe` True
+        isOptional (tile 3) `shouldBe` False
+
+  describe "isRequired" $ do
+    context "given a 0-Tile" $ do
+      it "returns False" $
+        isRequired (tile 0) `shouldBe` False
+    context "given a 1-Tile" $ do
+      it "returns False" $
+        isRequired (tile 1) `shouldBe` False
+    context "given a 2-Tile" $ do
+      it "returns True" $
+        isRequired (tile 2) `shouldBe` True
+    context "given a 3-Tile" $ do
+      it "returns True" $
+        isRequired (tile 3) `shouldBe` True
 
   describe "tiles" $ do
     it "returns a list of 4 tiles" $ do
