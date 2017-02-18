@@ -35,7 +35,7 @@ spec = do
       \pb p mt -> let pb' = partialBoard (unPartialBoard pb // [(p, mt)]) in maybeTileAt pb' p `shouldBe` mt
 
   describe "maybeTilesAt" $
-    it "returns the MaybeTiles at the given Positions" $ property $ do
+    it "returns the Maybe Tiles at the given Positions" $ property $ do
       as <- fmap (nubBy ((==) `on` fst)) arbitrary
       let ps  = map fst as
       let ts  = map snd as
@@ -49,6 +49,10 @@ spec = do
       \pb b p -> maybeTileAt (snd $ flipTileAt pb b p) p `shouldBe` Just (tileAt b p)
     it "otherwise leaves the PartialBoard unchanged" $ property $ do
       \pb b p p' -> p /= p' ==> maybeTileAt (snd $ flipTileAt pb b p) p' `shouldBe` maybeTileAt pb p'
+    it "preserves the consistency of a PartialBoard" $ property $ do
+      (b, pb) <- genConsistentPartialBoard
+      p       <- arbitrary
+      return $ flipTileAt pb b p `shouldSatisfy` (flip isConsistent b . snd)
 
   describe "flipTilesAt" $ do
     it "returns the Tiles at the given Positions in a Board" $ property $ do
@@ -57,6 +61,10 @@ spec = do
       \pb b ps -> maybeTilesAt (snd $ flipTilesAt pb b ps) ps `shouldBe` map Just (tilesAt b ps)
     it "otherwise leaves the PartialBoard unchanged" $ property $ do
       \pb b ps p -> not (p `elem` ps) ==> maybeTileAt (snd $ flipTilesAt pb b ps) p `shouldBe` maybeTileAt pb p 
+    it "preserves the consistency of a PartialBoard" $ property $ do
+      (b, pb) <- genConsistentPartialBoard
+      ps      <- arbitrary
+      return $ flipTilesAt pb b ps `shouldSatisfy` (flip isConsistent b . snd)
 
   describe "isConsistent" $ do
     context "given an empty PartialBoard" $
