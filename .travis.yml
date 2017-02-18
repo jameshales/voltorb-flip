@@ -43,6 +43,9 @@ script:
 
 after_script:
 # Upload code coverage report to codecov.io
-- mkdir -p "$TRAVIS_BUILD_DIR/dist/hpc"
-- ln -s $(stack path --local-hpc-root)/voltorb-flip/ "$TRAVIS_BUILD_DIR/dist/hpc/tix"
+- mix_dir_name=$(basename $(stack path --dist-dir)/hpc/voltorb-flip-*/)
+- mkdir -p "$TRAVIS_BUILD_DIR"/dist/hpc/tix/
+- mkdir -p "$TRAVIS_BUILD_DIR"/dist/hpc/mix/
+- cp -rf $(stack path --local-hpc-root)/voltorb-flip/voltorb-flip-test/ "$TRAVIS_BUILD_DIR"/dist/hpc/tix/
+- cp -rf $(stack path --dist-dir)/hpc/ "$TRAVIS_BUILD_DIR"/dist/hpc/mix/"$mix_dir_name"/
 - codecov-haskell voltorb-flip-test
