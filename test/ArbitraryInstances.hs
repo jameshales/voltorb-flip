@@ -16,7 +16,7 @@ import Test.QuickCheck (Arbitrary, Gen, arbitrary, elements, infiniteListOf, sub
 import Board (Board, board, findOptionalTiles, findRequiredTiles, tileAt)
 import Coordinate (Coordinate, coordinates)
 import Game (Game, game)
-import PartialBoard (PartialBoard, emptyBoard, flipTilesAt, partialBoard, updateMaybeTileAt)
+import PartialBoard (PartialBoard, emptyBoard, flipTilesAtWith, partialBoard, updateMaybeTileAt)
 import Position (Position, positionsByColumn)
 import Tile (Tile, tiles)
 
@@ -44,7 +44,7 @@ instance Arbitrary PartialBoard where
 genConsistentPartialBoard :: Gen (Board, PartialBoard)
 genConsistentPartialBoard = do
   b  <- arbitrary
-  pb <- fmap (snd . flipTilesAt emptyBoard b) $ sublistOf positionsByColumn
+  pb <- fmap (snd . flipTilesAtWith emptyBoard b) $ sublistOf positionsByColumn
   return (b, pb)
 
 genInconsistentPartialBoard :: Gen (Board, PartialBoard)
@@ -59,14 +59,14 @@ genCompletePartialBoard :: Gen (Board, PartialBoard)
 genCompletePartialBoard = do
   b  <- arbitrary
   ps <- (findRequiredTiles b ++) <$> sublistOf (findOptionalTiles b)
-  let pb = snd $ flipTilesAt emptyBoard b ps
+  let pb = snd $ flipTilesAtWith emptyBoard b ps
   return (b, pb)
 
 genIncompletePartialBoard :: Gen (Board, PartialBoard)
 genIncompletePartialBoard = do
   b  <- arbitrary `suchThat` (not . null . findRequiredTiles)
   ps <- let ns = findRequiredTiles b in (++) <$> sublistOf (findOptionalTiles b) <*> sublistOf ns `suchThat` (/=) ns
-  let pb = snd $ flipTilesAt emptyBoard b ps
+  let pb = snd $ flipTilesAtWith emptyBoard b ps
   return (b, pb)
 
 genCompleteGame :: Gen Game

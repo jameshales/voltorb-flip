@@ -73,53 +73,53 @@ spec = do
         (ps, mts, mts') <- fmap (unzip3 . nubBy ((==) `on` fst3)) arbitrary
         return $ updateMaybeTilesAt (updateMaybeTilesAt pb $ ps `zip` mts) (ps `zip` mts') `shouldBe` updateMaybeTilesAt pb (ps `zip` mts')
 
-  describe "flipTileAt" $ do
+  describe "flipTileAtWith" $ do
     it "returns a valid PartialBoard" $ property $ do
-      \pb b p -> flipTileAt pb b p `shouldSatisfy` isValidPartialBoard . snd
+      \pb b p -> flipTileAtWith pb b p `shouldSatisfy` isValidPartialBoard . snd
     it "returns the Tile at the given Position in a Board" $ property $ do
-      \pb b p -> fst (flipTileAt pb b p) `shouldBe` tileAt b p
+      \pb b p -> fst (flipTileAtWith pb b p) `shouldBe` tileAt b p
     it "flips the Tile at the given Position in a Board" $ property  $ do
-      \pb b p -> maybeTileAt (snd $ flipTileAt pb b p) p `shouldBe` Just (tileAt b p)
+      \pb b p -> maybeTileAt (snd $ flipTileAtWith pb b p) p `shouldBe` Just (tileAt b p)
     it "otherwise leaves the PartialBoard unchanged" $ property $ do
-      \pb b p p' -> p /= p' ==> maybeTileAt (snd $ flipTileAt pb b p) p' `shouldBe` maybeTileAt pb p'
+      \pb b p p' -> p /= p' ==> maybeTileAt (snd $ flipTileAtWith pb b p) p' `shouldBe` maybeTileAt pb p'
     it "preserves the consistency of a PartialBoard" $ property $ do
       (b, pb) <- genConsistentPartialBoard
       p       <- arbitrary
-      return $ flipTileAt pb b p `shouldSatisfy` flip isConsistent b . snd
+      return $ flipTileAtWith pb b p `shouldSatisfy` (flip isConsistentWith b . snd)
 
-  describe "flipTilesAt" $ do
+  describe "flipTilesAtWith" $ do
     it "returns a valid PartialBoard" $ property $ do
-      \pb b ps -> flipTilesAt pb b ps `shouldSatisfy` isValidPartialBoard . snd
+      \pb b ps -> flipTilesAtWith pb b ps `shouldSatisfy` isValidPartialBoard . snd
     it "returns the Tiles at the given Positions in a Board" $ property $ do
-      \pb b ps -> fst (flipTilesAt pb b ps) `shouldBe` tilesAt b ps
+      \pb b ps -> fst (flipTilesAtWith pb b ps) `shouldBe` tilesAt b ps
     it "flips the Tiles at the given Positions in a Board" $ property $ do
-      \pb b ps -> maybeTilesAt (snd $ flipTilesAt pb b ps) ps `shouldBe` map Just (tilesAt b ps)
+      \pb b ps -> maybeTilesAt (snd $ flipTilesAtWith pb b ps) ps `shouldBe` map Just (tilesAt b ps)
     it "otherwise leaves the PartialBoard unchanged" $ property $ do
-      \pb b ps p -> not (p `elem` ps) ==> maybeTileAt (snd $ flipTilesAt pb b ps) p `shouldBe` maybeTileAt pb p 
+      \pb b ps p -> not (p `elem` ps) ==> maybeTileAt (snd $ flipTilesAtWith pb b ps) p `shouldBe` maybeTileAt pb p 
     it "preserves the consistency of a PartialBoard" $ property $ do
       (b, pb) <- genConsistentPartialBoard
       ps      <- arbitrary
-      return $ flipTilesAt pb b ps `shouldSatisfy` flip isConsistent b . snd
+      return $ flipTilesAtWith pb b ps `shouldSatisfy` (flip isConsistentWith b . snd)
 
-  describe "isConsistent" $ do
+  describe "isConsistentWith" $ do
     context "given an empty PartialBoard" $
       it "returns True" $ property $ do
-        \b -> isConsistent emptyBoard b `shouldBe` True
+        \b -> isConsistentWith emptyBoard b `shouldBe` True
     context "given a PartialBoard with all of the flipped Tiles equal to the corresponding Tiles in the given Board" $
       it "returns True" $ property $ do
         (b, pb) <- genConsistentPartialBoard
-        return $ isConsistent pb b `shouldBe` True
+        return $ isConsistentWith pb b `shouldBe` True
     context "given a PartialBoard with some of the flipped Tiles not equal to the corresponding Tiles in the given Board" $
       it "returns False" $ property $ do
         (b, pb) <- genInconsistentPartialBoard
-        return $ isConsistent pb b `shouldBe` False
+        return $ isConsistentWith pb b `shouldBe` False
 
-  describe "isComplete" $ do
+  describe "isCompleteWith" $ do
     context "given a PartialBoard with all of the non-trivial Tiles flipped" $
       it "returns True" $ property $ do
         (b, pb) <- genCompletePartialBoard
-        return $ isComplete pb b `shouldBe` True
+        return $ isCompleteWith pb b `shouldBe` True
     context "given a PartialBoard with a non-trivial Tile unflipped" $
       it "returns False" $ property $ do
         (b, pb) <- genIncompletePartialBoard
-        return $ isComplete pb b `shouldBe` False
+        return $ isCompleteWith pb b `shouldBe` False

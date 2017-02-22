@@ -8,10 +8,10 @@ module PartialBoard
   , updateMaybeTileAt
   , maybeTilesAt
   , updateMaybeTilesAt
-  , flipTileAt
-  , flipTilesAt
-  , isConsistent
-  , isComplete
+  , flipTileAtWith
+  , flipTilesAtWith
+  , isConsistentWith
+  , isCompleteWith
   ) where
 
 import Data.Array (Array, array, bounds, (!), (//))
@@ -66,21 +66,21 @@ updateMaybeTilesAt pb as = PartialBoard $ (// as) $ unPartialBoard pb
 
 -- Flips the Tile at the given Position of a Board in the given PartialBoard,
 -- and returns the Tile that was flipped.
-flipTileAt :: PartialBoard -> Board -> Position -> (Tile, PartialBoard)
-flipTileAt pb b p = (t, PartialBoard $ unPartialBoard pb // [(p, Just t)])
+flipTileAtWith :: PartialBoard -> Board -> Position -> (Tile, PartialBoard)
+flipTileAtWith pb b p = (t, PartialBoard $ unPartialBoard pb // [(p, Just t)])
   where t = tileAt b p
 
 -- Flips the Tiles at the given Positions of a Board in the given PartialBoard.
-flipTilesAt :: PartialBoard -> Board -> [Position] -> ([Tile], PartialBoard)
-flipTilesAt pb b ps = foldr flipTileAt' (([], pb)) ps
-  where flipTileAt' p (ts, pb') = let (t, pb'') = flipTileAt pb' b p in (t:ts, pb'')
+flipTilesAtWith :: PartialBoard -> Board -> [Position] -> ([Tile], PartialBoard)
+flipTilesAtWith pb b ps = foldr flipTileAtWith' (([], pb)) ps
+  where flipTileAtWith' p (ts, pb') = let (t, pb'') = flipTileAtWith pb' b p in (t:ts, pb'')
 
 -- Tests whether the flipped Tiles in the PartialBoard are consistent with the
 -- given Board.
-isConsistent :: PartialBoard -> Board -> Bool
-isConsistent pb b = all (\p -> maybe True (== tileAt b p) $ maybeTileAt pb p) $ positionsByColumn
+isConsistentWith :: PartialBoard -> Board -> Bool
+isConsistentWith pb b = all (\p -> maybe True (== tileAt b p) $ maybeTileAt pb p) $ positionsByColumn
 
 -- Tests whether the PartialBoard has flipped all of the non-trivial Tiles in
 -- the given Board.
-isComplete :: PartialBoard -> Board -> Bool
-isComplete pb b = all (\p -> maybeTileAt pb p == Just (tileAt b p)) $  findRequiredTiles b
+isCompleteWith :: PartialBoard -> Board -> Bool
+isCompleteWith pb b = all (\p -> maybeTileAt pb p == Just (tileAt b p)) $  findRequiredTiles b

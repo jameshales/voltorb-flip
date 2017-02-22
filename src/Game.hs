@@ -9,8 +9,7 @@ module Game
   ) where
 
 import Board (Board)
-import PartialBoard (PartialBoard, emptyBoard, isConsistent)
-import qualified PartialBoard as PB (flipTileAt, isComplete)
+import PartialBoard (PartialBoard, emptyBoard, flipTileAtWith, isCompleteWith, isConsistentWith)
 import Position (Position)
 import Tile (Tile)
 
@@ -20,7 +19,7 @@ data Game = Game Board PartialBoard
 
 -- Checks whether the given Board and PartialBoard are valid as a Game.
 isValidGame :: Game -> Bool
-isValidGame = uncurry (flip isConsistent) . unGame
+isValidGame = uncurry (flip isConsistentWith) . unGame
 
 -- Constructor for a Game.
 game :: Board -> PartialBoard -> Game
@@ -40,9 +39,9 @@ newGame b = Game b emptyBoard
 flipTileAt :: Game -> Position -> (Tile, Game)
 flipTileAt g p = (t, Game b pb')
   where (b, pb)  = unGame g
-        (t, pb') = PB.flipTileAt pb b p
+        (t, pb') = flipTileAtWith pb b p
 
 -- Tests whether the PartialBoard has flipped all of the non-trivial Tiles in
 -- the Board.
 isComplete :: Game -> Bool
-isComplete = uncurry (flip PB.isComplete) . unGame
+isComplete = uncurry (flip isCompleteWith) . unGame

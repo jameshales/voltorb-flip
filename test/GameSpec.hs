@@ -6,8 +6,7 @@ import Test.QuickCheck
 
 import ArbitraryInstances (genCompleteGame, genConsistentPartialBoard, genIncompleteGame, genInconsistentPartialBoard)
 import Game
-import PartialBoard (emptyBoard)
-import qualified PartialBoard as PB (flipTileAt)
+import PartialBoard (emptyBoard, flipTileAtWith)
 
 spec :: Spec
 spec = do
@@ -33,9 +32,9 @@ spec = do
     it "does not modify the Board" $ property $ do
       \g p -> let (b, _) = unGame g in (fst $ unGame $ snd $ flipTileAt g p) `shouldBe` b
     it "flips the Tile at the given Position of the PartialBoard" $ property $ do
-      \g p -> let (b, pb) = unGame g in (snd $ unGame $ snd $ flipTileAt g p) `shouldBe` (snd $ PB.flipTileAt pb b p)
+      \g p -> let (b, pb) = unGame g in (snd $ unGame $ snd $ flipTileAt g p) `shouldBe` (snd $ flipTileAtWith pb b p)
     it "returns the Tile that was flipped" $ property $ do
-      \g p -> let (b, pb) = unGame g in (fst $ flipTileAt g p) `shouldBe` (fst $ PB.flipTileAt pb b p)
+      \g p -> let (b, pb) = unGame g in (fst $ flipTileAt g p) `shouldBe` (fst $ flipTileAtWith pb b p)
 
   describe "isComplete" $ do
     context "given a complete PartialBoard" $ do
