@@ -45,6 +45,8 @@ spec = do
         \pb p mt -> maybeTileAt (updateMaybeTileAt pb p mt) p `shouldBe` mt
 
   describe "updateMaybeTileAt" $ do
+    it "returns a valid PartialBoard" $ property $ do
+      \pb p mt -> updateMaybeTileAt pb p mt `shouldSatisfy` isValidPartialBoard
     context "updating the Maybe Tile at a Position of a PartialBoard with the Maybe Tile at that Position" $ do
       it "returns the original PartialBoard" $ property $ do
         \pb p -> updateMaybeTileAt pb p (maybeTileAt pb p) `shouldBe` pb
@@ -60,6 +62,8 @@ spec = do
         return $ maybeTilesAt (updateMaybeTilesAt pb $ ps `zip` mts) ps `shouldBe` mts
 
   describe "updateMaybeTilesAt" $ do
+    it "returns a valid PartialBoard" $ property $ do
+      \pb as -> updateMaybeTilesAt pb as `shouldSatisfy` isValidPartialBoard
     context "updating the Maybe Tiles at some Positions of a PartialBoard with the Maybe Tiles at those Positions" $ do
       it "returns the original PartialBoard" $ property $ do
         \pb ps -> updateMaybeTilesAt pb (ps `zip` maybeTilesAt pb ps) `shouldBe` pb
@@ -70,6 +74,8 @@ spec = do
         return $ updateMaybeTilesAt (updateMaybeTilesAt pb $ ps `zip` mts) (ps `zip` mts') `shouldBe` updateMaybeTilesAt pb (ps `zip` mts')
 
   describe "flipTileAt" $ do
+    it "returns a valid PartialBoard" $ property $ do
+      \pb b p -> flipTileAt pb b p `shouldSatisfy` isValidPartialBoard . snd
     it "returns the Tile at the given Position in a Board" $ property $ do
       \pb b p -> fst (flipTileAt pb b p) `shouldBe` tileAt b p
     it "flips the Tile at the given Position in a Board" $ property  $ do
@@ -79,9 +85,11 @@ spec = do
     it "preserves the consistency of a PartialBoard" $ property $ do
       (b, pb) <- genConsistentPartialBoard
       p       <- arbitrary
-      return $ flipTileAt pb b p `shouldSatisfy` (flip isConsistent b . snd)
+      return $ flipTileAt pb b p `shouldSatisfy` flip isConsistent b . snd
 
   describe "flipTilesAt" $ do
+    it "returns a valid PartialBoard" $ property $ do
+      \pb b ps -> flipTilesAt pb b ps `shouldSatisfy` isValidPartialBoard . snd
     it "returns the Tiles at the given Positions in a Board" $ property $ do
       \pb b ps -> fst (flipTilesAt pb b ps) `shouldBe` tilesAt b ps
     it "flips the Tiles at the given Positions in a Board" $ property $ do
@@ -91,7 +99,7 @@ spec = do
     it "preserves the consistency of a PartialBoard" $ property $ do
       (b, pb) <- genConsistentPartialBoard
       ps      <- arbitrary
-      return $ flipTilesAt pb b ps `shouldSatisfy` (flip isConsistent b . snd)
+      return $ flipTilesAt pb b ps `shouldSatisfy` flip isConsistent b . snd
 
   describe "isConsistent" $ do
     context "given an empty PartialBoard" $

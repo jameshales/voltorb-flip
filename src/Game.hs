@@ -1,5 +1,6 @@
 module Game
   ( Game ()
+  , isValidGame
   , game
   , unGame
   , newGame
@@ -17,10 +18,15 @@ import Tile (Tile)
 data Game = Game Board PartialBoard
   deriving (Eq, Ord, Show)
 
+-- Checks whether the given Board and PartialBoard are valid as a Game.
+isValidGame :: Game -> Bool
+isValidGame = uncurry (flip isConsistent) . unGame
+
 -- Constructor for a Game.
 game :: Board -> PartialBoard -> Game
-game b pb | isConsistent pb b = Game b pb
-          | otherwise         = error "PartialBoard is not consistent with Board"
+game b pb | isValidGame g = g
+          | otherwise     = error "PartialBoard is not consistent with Board"
+              where g = Game b pb
 
 -- Deconstructor for a Game.
 unGame :: Game -> (Board, PartialBoard)

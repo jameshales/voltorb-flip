@@ -42,6 +42,8 @@ spec = do
         \b p t -> tileAt (updateTileAt b p t) p `shouldBe` t
 
   describe "updateTileAt" $ do
+    it "returns a valid Board" $ property $ do
+      \b p t -> updateTileAt b p t `shouldSatisfy` isValidBoard
     context "updating the Tile at a Position of a Board with the Tile at that Position" $ do
       it "returns the original Board" $ property $ do
         \b p -> updateTileAt b p (tileAt b p) `shouldBe` b
@@ -57,6 +59,8 @@ spec = do
         return $ tilesAt (updateTilesAt b $ ps `zip` ts) ps `shouldBe` ts
 
   describe "updateTilesAt" $ do
+    it "returns a valid Board" $ property $ do
+      \b as -> updateTilesAt b as `shouldSatisfy` isValidBoard
     context "updating the Tiles at some Positions of a Board with the Tiles at those Positions" $ do
       it "returns the original Board" $ property $ do
         \b ps -> updateTilesAt b (ps `zip` tilesAt b ps) `shouldBe` b

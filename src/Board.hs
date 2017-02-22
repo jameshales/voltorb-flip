@@ -1,5 +1,6 @@
 module Board
   ( Board ()
+  , isValidBoard
   , board
   , unBoard
   , tileAt
@@ -32,10 +33,15 @@ instance Show Board where
     unlines $ map (map $ showTile . tileAt b) rows
       where showTile = intToDigit . unTile
 
+-- Checks whether the given Array is valid as a Board.
+isValidBoard :: Board -> Bool
+isValidBoard b = bounds (unBoard b) == (minBound, maxBound)
+
 -- Constructor for a Board.
 board :: Array Position Tile -> Board
-board a | bounds a == (minBound, maxBound)  = Board a
-        | otherwise                         = error "Array does not have full bounds"
+board a | isValidBoard b = b
+        | otherwise      = error "Array does not have full bounds"
+            where b = Board a
 
 -- Deconstructor for a Board.
 unBoard :: Board -> Array Position Tile
@@ -55,7 +61,7 @@ tilesAt b = map $ tileAt b
 
 -- Updates the Tiles at the corresponding Positions of a Board.
 updateTilesAt :: Board -> [(Position, Tile)] -> Board
-updateTilesAt b as = board $ (// as) $ unBoard b
+updateTilesAt b as = Board $ (// as) $ unBoard b
 
 -- Finds the Positions that contain 1-Tiles.
 findOptionalTiles :: Board -> [Position]
