@@ -1,7 +1,7 @@
 module PartialBoardSpec (spec) where
 
 import Control.Exception (evaluate)
-import Data.Array (listArray, (!), (//))
+import Data.Array (listArray)
 import Data.Function (on)
 import Data.List (nubBy)
 import Test.Hspec
@@ -10,6 +10,17 @@ import Test.QuickCheck
 import ArbitraryInstances
 import Board (tileAt, tilesAt)
 import PartialBoard
+import Position (Position)
+import Tile (Tile)
+
+genAssocs :: Gen [(Position, Maybe Tile)]
+genAssocs = fmap (nubBy ((==) `on` fst)) arbitrary
+
+genAssocsTuple :: Gen ([Position], [Maybe Tile])
+genAssocsTuple = fmap unzip genAssocs
+
+fst3 :: (a, b, c) -> a
+fst3 (a, _, _) = a
 
 spec :: Spec
 spec = do
@@ -20,27 +31,43 @@ spec = do
         return $ unPartialBoard (partialBoard a) `shouldBe` a
     context "given an Array with bounds less than (minBound, maxBound)" $ do
       it "returns an error" $ property $ do
-        let invalidBounds (a, b) = a /= minBound || b /= maxBound
-        bounds  <- arbitrary `suchThat` invalidBounds
-        ts      <- vectorOf 25 arbitrary
-        let arr  = listArray bounds ts
+        let invalidBounds = (/=) (minBound, maxBound)
+        arr <- listArray <$> arbitrary `suchThat` invalidBounds <*> infiniteListOf arbitrary
         return $ evaluate (partialBoard arr) `shouldThrow` errorCall "Array does not have full bounds"
 
   describe "emptyBoard" $
     it "contains Nothing" $ property $ do
-      \p -> (unPartialBoard emptyBoard) ! p `shouldBe` Nothing
+      \p -> maybeTileAt emptyBoard p `shouldBe` Nothing
 
   describe "maybeTileAt" $
-    it "returns the Maybe Tile at the given Position" $ property $ do
-      \pb p mt -> let pb' = partialBoard (unPartialBoard pb // [(p, mt)]) in maybeTileAt pb' p `shouldBe` mt
+    context "getting the Maybe Tile at a Position of a PartialBoard that was just updated" $ do
+      it "returns the Maybe Tile that was just updated" $ property $ do
+        \pb p mt -> maybeTileAt (updateMaybeTileAt pb p mt) p `shouldBe` mt
+
+  describe "updateMaybeTileAt" $ do
+    context "updating the Maybe Tile at a Position of a PartialBoard with the Maybe Tile at that Position" $ do
+      it "returns the original PartialBoard" $ property $ do
+        \pb p -> updateMaybeTileAt pb p (maybeTileAt pb p) `shouldBe` pb
+    context "updating the Maybe Tile at a Position of a PartialBoard twice" $ do
+      it "returns the same PartialBoard that results from only updating the PartialBoard the second time" $ property $ do
+        \pb p mt mt' -> updateMaybeTileAt (updateMaybeTileAt pb p mt) p mt' `shouldBe` updateMaybeTileAt pb p mt'
 
   describe "maybeTilesAt" $
-    it "returns the Maybe Tiles at the given Positions" $ property $ do
-      as <- fmap (nubBy ((==) `on` fst)) arbitrary
-      let ps  = map fst as
-      let ts  = map snd as
-      pb <- fmap (partialBoard . (// as) . unPartialBoard) arbitrary
-      return $ maybeTilesAt pb ps `shouldBe` ts
+    context "getting the Maybe Tiles at some Positions of a PartialBoard that were just updated" $ do
+      it "returns the Tiles that were updated" $ property $ do
+        pb <- arbitrary
+        (ps, mts) <- genAssocsTuple
+        return $ maybeTilesAt (updateMaybeTilesAt pb $ ps `zip` mts) ps `shouldBe` mts
+
+  describe "updateMaybeTilesAt" $ do
+    context "updating the Maybe Tiles at some Positions of a PartialBoard with the Maybe Tiles at those Positions" $ do
+      it "returns the original PartialBoard" $ property $ do
+        \pb ps -> updateMaybeTilesAt pb (ps `zip` maybeTilesAt pb ps) `shouldBe` pb
+    context "updating some Maybe Tiles at some Positions of a PartialBoard twice" $ do
+      it "returns the same result PartialBoard that results from only updating the PartialBoard a second time" $ property $ do
+        pb              <- arbitrary
+        (ps, mts, mts') <- fmap (unzip3 . nubBy ((==) `on` fst3)) arbitrary
+        return $ updateMaybeTilesAt (updateMaybeTilesAt pb $ ps `zip` mts) (ps `zip` mts') `shouldBe` updateMaybeTilesAt pb (ps `zip` mts')
 
   describe "flipTileAt" $ do
     it "returns the Tile at the given Position in a Board" $ property $ do

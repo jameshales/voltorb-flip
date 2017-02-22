@@ -10,13 +10,13 @@ module ArbitraryInstances
   , genIncompleteGame
   ) where
 
-import Data.Array (Array, array, assocs, (//))
+import Data.Array (Array, array)
 import Test.QuickCheck (Arbitrary, Gen, arbitrary, elements, infiniteListOf, sublistOf, suchThat)
 
-import Board (Board, board, findOptionalTiles, findRequiredTiles, tileAt, unBoard)
+import Board (Board, board, findOptionalTiles, findRequiredTiles, tileAt)
 import Coordinate (Coordinate, coordinates)
 import Game (Game, game)
-import PartialBoard (PartialBoard, emptyBoard, flipTilesAt, partialBoard, unPartialBoard)
+import PartialBoard (PartialBoard, emptyBoard, flipTilesAt, partialBoard, updateMaybeTileAt)
 import Position (Position, positionsByColumn)
 import Tile (Tile, tiles)
 
@@ -44,7 +44,7 @@ instance Arbitrary PartialBoard where
 genConsistentPartialBoard :: Gen (Board, PartialBoard)
 genConsistentPartialBoard = do
   b  <- arbitrary
-  pb <- fmap (partialBoard . (unPartialBoard emptyBoard //) . map (\(p, t) -> (p, Just t))) $ sublistOf $ assocs $ unBoard b
+  pb <- fmap (snd . flipTilesAt emptyBoard b) $ sublistOf positionsByColumn
   return (b, pb)
 
 genInconsistentPartialBoard :: Gen (Board, PartialBoard)
@@ -52,13 +52,13 @@ genInconsistentPartialBoard = do
   b   <- arbitrary
   p   <- arbitrary
   t   <- arbitrary `suchThat` (tileAt b p /=)
-  pb  <- fmap (partialBoard . (// [(p, Just t)]) . unPartialBoard) arbitrary
+  pb  <- fmap (\pb -> updateMaybeTileAt pb p $ Just t) arbitrary
   return (b, pb)
 
 genCompletePartialBoard :: Gen (Board, PartialBoard)
 genCompletePartialBoard = do
   b  <- arbitrary
-  ps <- (++ findRequiredTiles b) <$> sublistOf (findOptionalTiles b)
+  ps <- (findRequiredTiles b ++) <$> sublistOf (findOptionalTiles b)
   let pb = snd $ flipTilesAt emptyBoard b ps
   return (b, pb)
 

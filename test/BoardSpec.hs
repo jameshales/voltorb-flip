@@ -46,25 +46,25 @@ spec = do
       it "returns the original Board" $ property $ do
         \b p -> updateTileAt b p (tileAt b p) `shouldBe` b
     context "updating a Tile at a Position of a Board twice" $ do
-      it "is the same as only updating the Board the second time" $ property $ do
+      it "returns the same Board that results from only updating the Board the second time" $ property $ do
         \b p t t' -> updateTileAt (updateTileAt b p t) p t' `shouldBe` updateTileAt b p t'
 
   describe "tilesAt" $ do
-    context "getting the Tiles at some Positions of a Board that was just updated" $ do
+    context "getting the Tiles at some Positions of a Board that were just updated" $ do
       it "returns the Tiles that were updated" $ property $ do
         b         <- arbitrary
         (ps, ts)  <- genAssocsTuple
-        return $ tilesAt (updateTilesAt b (zip ps ts)) ps `shouldBe` ts
+        return $ tilesAt (updateTilesAt b $ ps `zip` ts) ps `shouldBe` ts
 
   describe "updateTilesAt" $ do
     context "updating the Tiles at some Positions of a Board with the Tiles at those Positions" $ do
       it "returns the original Board" $ property $ do
-        \b ps -> updateTilesAt b (zip ps (tilesAt b ps)) `shouldBe` b
+        \b ps -> updateTilesAt b (ps `zip` tilesAt b ps) `shouldBe` b
     context "updating some Tiles at some Positions of a Board twice" $ do
-      it "is the same as only updating the Board the second time" $ property $ do
+      it "returns the same result Board that results from only updating the Board a second time" $ property $ do
         b             <- arbitrary
         (ps, ts, ts') <- fmap (unzip3 . nubBy ((==) `on` fst3)) arbitrary
-        return $ updateTilesAt (updateTilesAt b (zip ps ts)) (zip ps ts') `shouldBe` updateTilesAt b (zip ps ts')
+        return $ updateTilesAt (updateTilesAt b $ ps `zip` ts) (ps `zip` ts') `shouldBe` updateTilesAt b (ps `zip` ts')
 
   describe "findOptionalTiles" $ do
     it "returns a list of Positions such that every Position in the list contains an optional Tile" $ property $ do

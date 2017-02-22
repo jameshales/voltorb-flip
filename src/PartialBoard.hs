@@ -4,7 +4,9 @@ module PartialBoard
   , unPartialBoard
   , emptyBoard
   , maybeTileAt
+  , updateMaybeTileAt
   , maybeTilesAt
+  , updateMaybeTilesAt
   , flipTileAt
   , flipTilesAt
   , isConsistent
@@ -44,9 +46,17 @@ emptyBoard = partialBoard $ array (minBound, maxBound) $ positionsByColumn `zip`
 maybeTileAt :: PartialBoard -> Position -> Maybe Tile
 maybeTileAt pb p = unPartialBoard pb ! p
 
+-- Updates the Maybe Tile at the given Position of a PartialBoard.
+updateMaybeTileAt :: PartialBoard -> Position -> Maybe Tile -> PartialBoard
+updateMaybeTileAt pb p mt = updateMaybeTilesAt pb [(p, mt)]
+
 -- Returns the Maybe Tiles at the given Positions of a PartialBoard.
 maybeTilesAt :: PartialBoard -> [Position] -> [Maybe Tile]
 maybeTilesAt pb ps = map (maybeTileAt pb) ps
+
+-- Updates the Maybe Tiles at the given Positions of a PartialBoard.
+updateMaybeTilesAt :: PartialBoard -> [(Position, Maybe Tile)] -> PartialBoard
+updateMaybeTilesAt pb as = partialBoard $ (// as) $ unPartialBoard pb
 
 -- Flips the Tile at the given Position of a Board in the given PartialBoard,
 -- and returns the Tile that was flipped.
