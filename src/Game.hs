@@ -11,7 +11,6 @@ module Game
 import Board (Board)
 import PartialBoard (PartialBoard, emptyBoard, flipTileAtWith, isCompleteWith, isConsistentWith)
 import Position (Position)
-import Tile (Tile)
 
 -- A Game consisting of a Board and a consistent PartialBoard.
 data Game = Game Board PartialBoard
@@ -36,10 +35,10 @@ newGame :: Board -> Game
 newGame b = Game b emptyBoard
 
 -- Flips a Tile of the PartialBoard at the given Position
-flipTileAt :: Game -> Position -> (Tile, Game)
-flipTileAt g p = (t, Game b pb')
-  where (b, pb)  = unGame g
-        (t, pb') = flipTileAtWith pb b p
+flipTileAt :: Position -> Game -> Game
+flipTileAt p g = Game b pb'
+  where (b, pb) = unGame g
+        pb'     = flipTileAtWith b p pb
 
 -- Tests whether the PartialBoard has flipped all of the non-trivial Tiles in
 -- the Board.
