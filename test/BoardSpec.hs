@@ -9,7 +9,9 @@ import Test.QuickCheck
 
 import ArbitraryInstances (genTileArray)
 import Board
-import Position (Position, axis, column, positionsByColumn, row)
+import Clue (Clue(..))
+import Clues (clueAt)
+import Position (Position, axis, positionsByColumn)
 import Tile (Tile, isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
 
 genAssocs :: Gen [(Position, Tile)]
@@ -30,7 +32,7 @@ spec = do
         return $ unBoard (board a) `shouldBe` a
     context "given an Array with bounds less than (minBound, maxBound)" $ do
       it "returns an error" $ property $ do
-        let invalidBounds (a, b) = a /= minBound || b /= maxBound
+        let invalidBounds = (/= (minBound, maxBound))
         bounds  <- arbitrary `suchThat` invalidBounds
         ts      <- vectorOf 25 arbitrary
         let arr  = listArray bounds ts
@@ -89,22 +91,6 @@ spec = do
       let b'     = updateTilesAt b $ ps `zip` ts
       return $ sumOfTilesAt b' ps `shouldBe` sumOfTiles ts
 
-  describe "sumOfTilesAtRow" $
-    it "returns the number of Voltorbs in the tiles in the given row" $ property $ do
-      b     <- arbitrary
-      c     <- arbitrary
-      ts    <- vectorOf 5 arbitrary
-      let b' = updateTilesAt b $ row c `zip` ts
-      return $ sumOfTilesAtRow b' c `shouldBe` sumOfTiles ts
-
-  describe "sumOfTilesAtColumn" $
-    it "returns the number of Voltorbs in the tiles in the given column" $ property $ do
-      b     <- arbitrary
-      c     <- arbitrary
-      ts    <- vectorOf 5 arbitrary
-      let b' = updateTilesAt b $ column c `zip` ts
-      return $ sumOfTilesAtColumn b' c `shouldBe` sumOfTiles ts
-
   describe "sumOfTilesAtAxis" $
     it "returns the number of Voltorbs in the tiles in the given Axis" $ property $ do
       b     <- arbitrary
@@ -120,22 +106,6 @@ spec = do
       let b'  = updateTilesAt b $ ps `zip` ts
       return $ numberOfVoltorbsAt b' ps `shouldBe` numberOfVoltorbs ts
 
-  describe "numberOfVoltorbsAtRow" $
-    it "returns the number of Voltorbs in the tiles in the given row" $ property $ do
-      b     <- arbitrary
-      c     <- arbitrary
-      ts    <- vectorOf 5 arbitrary
-      let b' = updateTilesAt b $ row c `zip` ts
-      return $ numberOfVoltorbsAtRow b' c `shouldBe` numberOfVoltorbs ts
-
-  describe "numberOfVoltorbsAtColumn" $
-    it "returns the number of Voltorbs in the tiles in the given column" $ property $ do
-      b     <- arbitrary
-      c     <- arbitrary
-      ts    <- vectorOf 5 arbitrary
-      let b' = updateTilesAt b $ column c `zip` ts
-      return $ numberOfVoltorbsAtColumn b' c `shouldBe` numberOfVoltorbs ts
-
   describe "numberOfVoltorbsAtAxis" $
     it "returns the number of Voltorbs in the Tiles in the given Axis" $ property $ do
       b     <- arbitrary
@@ -143,3 +113,13 @@ spec = do
       ts    <- vectorOf 5 arbitrary
       let b' = updateTilesAt b $ axis a `zip` ts
       return $ numberOfVoltorbsAtAxis b' a `shouldBe` numberOfVoltorbs ts
+
+  describe "clueAtAxis" $ do
+    it "returns a Clue with the sum of Tiles at the given Axis of the Board" $ property $ do
+      \b a -> getSumOfTiles (clueAtAxis b a) `shouldBe` sumOfTilesAtAxis b a
+    it "returns a Clue with the number of Voltorbs at the given Axis of the Board" $ property $ do
+      \b a -> getNumberOfVoltorbs (clueAtAxis b a) `shouldBe` numberOfVoltorbsAtAxis b a
+
+  describe "cluesFor" $ do
+    it "returns Clues" $ property $ do
+      \b a -> cluesFor b `clueAt` a `shouldBe` clueAtAxis b a

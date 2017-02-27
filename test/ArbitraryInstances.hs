@@ -10,16 +10,35 @@ module ArbitraryInstances
   , genIncompleteGame
   , genColumn
   , genRow
+  , genClueArray
   ) where
 
 import Data.Array (Array, array)
-import Test.QuickCheck (Arbitrary, Gen, arbitrary, elements, infiniteListOf, oneof, sublistOf, suchThat)
+import Test.QuickCheck
+  ( Arbitrary
+  , Gen
+  , arbitrary
+  , choose
+  , elements
+  , infiniteListOf
+  , oneof
+  , sublistOf
+  , suchThat
+  )
 
-import Axis (Axis (Column, Row))
+import Axis (Axis (Column, Row), axes)
 import Board (Board, board, findOptionalTiles, findRequiredTiles, tileAt)
+import Clue (Clue, clue)
+import Clues (Clues, clues)
 import Coordinate (Coordinate, coordinates)
 import Game (Game, game)
-import PartialBoard (PartialBoard, emptyBoard, flipTilesAtWith, partialBoard, updateMaybeTileAt)
+import PartialBoard
+  ( PartialBoard
+  , emptyBoard
+  , flipTilesAtWith
+  , partialBoard
+  , updateMaybeTileAt
+  )
 import Position (Position, positionsByColumn)
 import Tile (Tile, tiles)
 
@@ -89,3 +108,15 @@ genRow = fmap Row arbitrary
 
 instance Arbitrary Axis where
   arbitrary = oneof [genColumn, genRow]
+
+instance Arbitrary Clue where
+  arbitrary = do
+    s <- choose (0, 15)
+    n <- choose (0, 5)
+    return $ clue s n
+
+genClueArray :: Gen (Array Axis Clue)
+genClueArray = fmap (array (minBound, maxBound) . zip axes) $ infiniteListOf arbitrary
+
+instance Arbitrary Clues where
+  arbitrary = fmap clues genClueArray

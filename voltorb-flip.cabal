@@ -18,6 +18,8 @@ library
   exposed-modules:     Axis
                      , Board
                      , BoardParser
+                     , Clue
+                     , Clues
                      , Coordinate
                      , Game
                      , PartialBoard
@@ -54,6 +56,8 @@ test-suite voltorb-flip-test
                      , AxisSpec
                      , BoardSpec
                      , BoardParserSpec
+                     , ClueSpec
+                     , CluesSpec
                      , CoordinateSpec
                      , GameSpec
                      , PartialBoardSpec
