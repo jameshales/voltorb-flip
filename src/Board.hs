@@ -12,16 +12,19 @@ module Board
   , sumOfTilesAt
   , sumOfTilesAtRow
   , sumOfTilesAtColumn
+  , sumOfTilesAtAxis
   , numberOfVoltorbsAt
   , numberOfVoltorbsAtRow
   , numberOfVoltorbsAtColumn
+  , numberOfVoltorbsAtAxis
   ) where
 
 import Data.Array (Array, bounds, (!), (//))
 import Data.Char (intToDigit)
 
+import Axis (Axis)
 import Coordinate (Coordinate)
-import Position (Position, column, positionsByColumn, row, rows)
+import Position (Position, axis, column, positionsByColumn, row, rows)
 import Tile (Tile, isOptional, isRequired, numberOfVoltorbs, sumOfTiles, unTile)
 
 -- A 5x5 Board of Tiles
@@ -83,6 +86,10 @@ sumOfTilesAtRow b = sumOfTilesAt b . row
 sumOfTilesAtColumn :: Board -> Coordinate -> Int
 sumOfTilesAtColumn b = sumOfTilesAt b . column
 
+-- Returns the sum of all Tile values in the given Axis of a Board.
+sumOfTilesAtAxis :: Board -> Axis -> Int
+sumOfTilesAtAxis b = sumOfTilesAt b . axis
+
 -- Returns the number of Voltorb Tiles in the given Positions of a Board.
 numberOfVoltorbsAt :: Board -> [Position] -> Int
 numberOfVoltorbsAt = (numberOfVoltorbs .) . tilesAt
@@ -94,3 +101,7 @@ numberOfVoltorbsAtRow b = numberOfVoltorbsAt b . row
 -- Returns the number of Voltorb Tiles in the given column of a Board.
 numberOfVoltorbsAtColumn :: Board -> Coordinate -> Int
 numberOfVoltorbsAtColumn b = numberOfVoltorbsAt b . column
+
+-- Returns the number of Voltorb Tiles in the given Axis of a Board.
+numberOfVoltorbsAtAxis :: Board -> Axis -> Int
+numberOfVoltorbsAtAxis b = numberOfVoltorbsAt b . axis

@@ -9,7 +9,7 @@ import Test.QuickCheck
 
 import ArbitraryInstances (genTileArray)
 import Board
-import Position (Position, column, positionsByColumn, row)
+import Position (Position, axis, column, positionsByColumn, row)
 import Tile (Tile, isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
 
 genAssocs :: Gen [(Position, Tile)]
@@ -105,6 +105,14 @@ spec = do
       let b' = updateTilesAt b $ column c `zip` ts
       return $ sumOfTilesAtColumn b' c `shouldBe` sumOfTiles ts
 
+  describe "sumOfTilesAtAxis" $
+    it "returns the number of Voltorbs in the tiles in the given Axis" $ property $ do
+      b     <- arbitrary
+      c     <- arbitrary
+      ts    <- vectorOf 5 arbitrary
+      let b' = updateTilesAt b $ axis c `zip` ts
+      return $ sumOfTilesAtAxis b' c `shouldBe` sumOfTiles ts
+
   describe "numberOfVoltorbsAt" $
     it "returns the numberOfVoltorbs in the tiles at the given list of positions" $ property $ do
       b         <- arbitrary
@@ -127,3 +135,11 @@ spec = do
       ts    <- vectorOf 5 arbitrary
       let b' = updateTilesAt b $ column c `zip` ts
       return $ numberOfVoltorbsAtColumn b' c `shouldBe` numberOfVoltorbs ts
+
+  describe "numberOfVoltorbsAtAxis" $
+    it "returns the number of Voltorbs in the Tiles in the given Axis" $ property $ do
+      b     <- arbitrary
+      a     <- arbitrary
+      ts    <- vectorOf 5 arbitrary
+      let b' = updateTilesAt b $ axis a `zip` ts
+      return $ numberOfVoltorbsAtAxis b' a `shouldBe` numberOfVoltorbs ts

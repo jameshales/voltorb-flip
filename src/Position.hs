@@ -10,10 +10,12 @@ module Position
   , column
   , columns
   , positionsByColumn
+  , axis
   ) where
 
 import Data.Array (Ix)
 
+import Axis (Axis(Column, Row))
 import Coordinate (Coordinate, coordinate, coordinates, unCoordinate)
 
 -- A Position on a 5x5 Board
@@ -59,7 +61,8 @@ rows = [row y | y <- coordinates]
 positionsByRow :: [Position]
 positionsByRow = concat rows
 
--- Returns a list of all columns, in ascending order of column Coordinate.
+-- Returns a list of all Positions with the given column Coordinate, in ascending
+-- order of row Coordinate.
 column :: Coordinate -> [Position]
 column x = [position x y | y <- coordinates]
 
@@ -71,3 +74,8 @@ columns = [column x | x <- coordinates]
 -- Coordinate.
 positionsByColumn :: [Position]
 positionsByColumn = concat columns
+
+-- Returns a list of all Positions with the given Axis.
+axis :: Axis -> [Position]
+axis (Column c) = column c
+axis (Row c)    = row c

@@ -1,7 +1,7 @@
 name:                voltorb-flip
 version:             0.1.0.0
 synopsis:            Simulator and solver for Voltorb Flip
--- description:
+description:         Simulator and solver for Voltorb Flip
 homepage:            https://github.com/jameshales/voltorb-flip#readme
 license:             BSD3
 license-file:        LICENSE
@@ -15,7 +15,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Board
+  exposed-modules:     Axis
+                     , Board
                      , BoardParser
                      , Coordinate
                      , Game
@@ -50,6 +51,7 @@ test-suite voltorb-flip-test
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
   other-modules:       ArbitraryInstances
+                     , AxisSpec
                      , BoardSpec
                      , BoardParserSpec
                      , CoordinateSpec

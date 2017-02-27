@@ -7,6 +7,7 @@ import Test.Hspec
 import Test.QuickCheck
 
 import ArbitraryInstances ()
+import Axis (Axis(Column, Row))
 import Position
 
 outOfBoundsError :: Selector ErrorCall
@@ -99,3 +100,19 @@ spec = do
       nub positionsByColumn `shouldBe` positionsByColumn
     it "returns a list of positions sorted by column then by row" $ do
       sortBy (comparing (\p -> (columnOf p, rowOf p))) positionsByColumn `shouldBe` positionsByColumn
+
+  describe "axis" $ do
+    it "returns a list of 5 columns" $ property $ do
+      \a -> length (axis a) `shouldBe` 5
+    it "returns a list of positions in sorted order" $ property $ do
+      \a -> sort (axis a) `shouldBe` axis a
+    context "given (Column c)" $ do
+      it "returns (column c)" $ property $ do
+        c <- arbitrary
+        let a = Column c
+        return $ axis a `shouldBe` column c
+    context "given (Row c)" $ do
+      it "returns (row c)" $ property $ do
+        c <- arbitrary
+        let a = Row c
+        return $ axis a `shouldBe` row c

@@ -1,0 +1,66 @@
+module AxisSpec (spec) where
+
+import Control.Exception (ErrorCall, evaluate)
+import Data.Ix
+import Test.Hspec
+import Test.QuickCheck
+
+import ArbitraryInstances ()
+import Axis
+
+outOfBoundsError :: Selector ErrorCall
+outOfBoundsError = errorCall "Axis out of bounds"
+
+outOfRangeError :: Selector ErrorCall
+outOfRangeError = errorCall "Axis out of range"
+
+spec :: Spec
+spec = do
+  describe "instance Bounded Axis" $ do
+    describe "minBound" $ do
+      it "is less than or equal to any Axis" $ property $ do
+        \a -> (minBound :: Axis) `shouldSatisfy` (<= a)
+    describe "maxBound" $ do
+      it "is greater than or equal to any Axis" $ property $ do
+        \a -> (maxBound :: Axis) `shouldSatisfy` (>= a)
+
+  describe "instance Enum Axis" $ do
+    describe "succ" $ do
+      it "returns an error on maxBound" $ do
+        evaluate (succ (maxBound :: Axis)) `shouldThrow` outOfBoundsError
+    describe "pred" $ do
+      it "returns an error on minBound" $ do
+        evaluate (pred (minBound :: Axis)) `shouldThrow` outOfBoundsError
+    describe "toEnum" $ do
+      context "when the value is less than 0" $ do
+        it "returns an error" $ property $ do
+          i <- choose (minBound, 0)
+          return $ evaluate (toEnum i :: Axis) `shouldThrow` outOfBoundsError
+      context "when the value is greater than 9" $ do
+        it "returns an error" $ property $ do
+          i <- choose (10, maxBound)
+          return $ evaluate (toEnum i :: Axis) `shouldThrow` outOfBoundsError
+      context "otherwise" $ do
+        it "is inverted by fromEnum" $ property $ do
+          i <- choose (0, 9)
+          return $ (fromEnum $ (toEnum i :: Axis)) `shouldBe` i
+    describe "fromEnum" $ do
+      it "is inverted by toEnum" $ property $
+        \c -> (toEnum $ fromEnum c :: Axis) `shouldBe` c
+
+  describe "instance Ix Axis" $ do
+    it "satisfies inRange (l, u) i == elem i (range (l, u))" $ property $ do
+      \l u i -> inRange (l, u) (i :: Axis) `shouldBe` elem i (range (l, u))
+    it "satisfies range (l, u) !! index (l, u) i == i when inRange (l, u) i" $ property $ do
+      \l u i -> inRange (l, u) (i :: Axis) ==> range (l, u) !! index (l, u) i `shouldBe` i
+    it "satisfies map (index (l, u)) (range (l, u)) == [0..rangeSize (l, u) - 1]" $ property $ do
+      \l u -> map (index ((l :: Axis), u)) (range (l, u)) `shouldBe` [0..rangeSize (l, u) - 1]
+    it "satisfies rangeSize (l, u) == length (range (l, u))" $ property $ do
+      \l u -> rangeSize ((l :: Axis), u) `shouldBe` length (range (l, u))
+    describe "index" $ do
+      it "returns an error if the index is out of range" $ property $ do
+        \l u i -> not (inRange (l, u) (i :: Axis)) ==> evaluate (index (l, u) i) `shouldThrow` outOfRangeError
+
+  describe "axes" $ do
+    it "returns a list of all Axes" $ property $ do
+      \a -> axes `shouldSatisfy` elem a

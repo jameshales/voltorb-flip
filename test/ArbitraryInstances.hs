@@ -8,11 +8,14 @@ module ArbitraryInstances
   , genIncompletePartialBoard
   , genCompleteGame
   , genIncompleteGame
+  , genColumn
+  , genRow
   ) where
 
 import Data.Array (Array, array)
-import Test.QuickCheck (Arbitrary, Gen, arbitrary, elements, infiniteListOf, sublistOf, suchThat)
+import Test.QuickCheck (Arbitrary, Gen, arbitrary, elements, infiniteListOf, oneof, sublistOf, suchThat)
 
+import Axis (Axis (Column, Row))
 import Board (Board, board, findOptionalTiles, findRequiredTiles, tileAt)
 import Coordinate (Coordinate, coordinates)
 import Game (Game, game)
@@ -77,3 +80,12 @@ genIncompleteGame = uncurry game <$> genIncompletePartialBoard
 
 instance Arbitrary Game where
   arbitrary = uncurry game <$> genConsistentPartialBoard
+
+genColumn :: Gen Axis
+genColumn = fmap Column arbitrary
+
+genRow :: Gen Axis
+genRow = fmap Row arbitrary
+
+instance Arbitrary Axis where
+  arbitrary = oneof [genColumn, genRow]
