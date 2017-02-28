@@ -1,5 +1,5 @@
 module Game
-  ( Game ()
+  ( Game (getGameBoard, getGamePartialBoard)
   , isValidGame
   , game
   , unGame
@@ -13,8 +13,10 @@ import PartialBoard (PartialBoard, emptyBoard, flipTileAtWith, isCompleteWith, i
 import Position (Position)
 
 -- A Game consisting of a Board and a consistent PartialBoard.
-data Game = Game Board PartialBoard
-  deriving (Eq, Ord, Show)
+data Game = Game {
+  getGameBoard        :: Board,
+  getGamePartialBoard :: PartialBoard
+} deriving (Eq, Ord, Show)
 
 -- Checks whether the given Board and PartialBoard are valid as a Game.
 isValidGame :: Game -> Bool

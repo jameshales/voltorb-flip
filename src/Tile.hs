@@ -6,9 +6,14 @@ module Tile
   , isOptional
   , isRequired
   , tiles
-  , sumOfTiles
   , numberOfVoltorbs
+  , sumOfTiles
+  , numberOfFlippedTiles
+  , numberOfFlippedVoltorbs
+  , sumOfFlippedTiles
   ) where
+
+import Data.Maybe (catMaybes)
 
 -- A Tile on a Board can be a 0 (Voltorb), 1, 2, or 3
 data Tile = Tile Int
@@ -49,10 +54,22 @@ isRequired = (>= 2) . unTile
 tiles :: [Tile]
 tiles = [minBound..maxBound]
 
--- Returns the sum of all Tile values in the given list.
+-- Counts the Voltorb Tiles in the given list.
+numberOfVoltorbs :: [Tile] -> Int
+numberOfVoltorbs = length . filter (== voltorb)
+
+-- Sums the Tile values in the given list.
 sumOfTiles :: [Tile] -> Int
 sumOfTiles = sum . map unTile
 
--- Returns the number of Voltorb Tiles in the given list.
-numberOfVoltorbs :: [Tile] -> Int
-numberOfVoltorbs = length . filter (== voltorb)
+-- Counts the flipped Tiles in the given list.
+numberOfFlippedTiles :: [Maybe Tile] -> Int
+numberOfFlippedTiles = length . catMaybes
+
+-- Counts the flipped Voltorb Tiles in the given list.
+numberOfFlippedVoltorbs :: [Maybe Tile] -> Int
+numberOfFlippedVoltorbs = numberOfVoltorbs . catMaybes
+
+-- Sums the values of the flipped Tiles in the given list.
+sumOfFlippedTiles :: [Maybe Tile] -> Int
+sumOfFlippedTiles = sumOfTiles . catMaybes

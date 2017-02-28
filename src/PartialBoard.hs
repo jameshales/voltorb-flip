@@ -12,14 +12,19 @@ module PartialBoard
   , flipTilesAtWith
   , isConsistentWith
   , isCompleteWith
+  , isConsistentWithClues
+  , isCompleteWithClues
   ) where
 
 import Data.Array (Array, array, bounds, (!), (//))
 import Data.Char (intToDigit)
 
+import Axis (Axis, axes)
 import Board (Board, findRequiredTiles, tileAt, tilesAt)
-import Tile (Tile, unTile)
-import Position (Position, positionsByColumn, rows)
+import Clue (Clue(getSumOfTiles, getNumberOfVoltorbs))
+import Clues (Clues, clueAt)
+import Tile (Tile, unTile, numberOfFlippedTiles, numberOfFlippedVoltorbs, sumOfFlippedTiles)
+import Position (Position, axis, positionsByColumn, rows)
 
 -- A partially flipped 5x5 Board of Tiles
 data PartialBoard = PartialBoard (Array Position (Maybe Tile))
@@ -82,3 +87,40 @@ isConsistentWith pb b = all (\p -> maybe True (== tileAt b p) $ maybeTileAt pb p
 -- the given Board.
 isCompleteWith :: PartialBoard -> Board -> Bool
 isCompleteWith pb b = all (\p -> maybeTileAt pb p == Just (tileAt b p)) $  findRequiredTiles b
+
+-- Tests whether the list of Tiles is consistent with the given Clue. This is a
+-- heuristic that may have false positives, but it will not have false
+-- negatives.
+isConsistentWithClue :: [Maybe Tile] -> Clue -> Bool
+isConsistentWithClue ts c = s' <= s && n' <= n
+  where s      = getSumOfTiles c
+        n      = getNumberOfVoltorbs c
+        s'     = sumOfFlippedTiles ts
+        n'     = numberOfFlippedVoltorbs ts
+
+-- Tests whether the list of Tiles is complete with the given Clue.
+isCompleteWithClue :: [Maybe Tile] -> Clue -> Bool
+isCompleteWithClue ts c = sumOfUnflippedTiles == numberOfFlippableTiles
+  where sumOfUnflippedTiles    = getSumOfTiles c - sumOfFlippedTiles ts
+        numberOfUnflippedTiles = 5 - numberOfFlippedTiles ts
+        numberOfFlippableTiles = numberOfUnflippedTiles - getNumberOfVoltorbs c
+
+-- Tests whether the PartialBoard is consistent with the given Clues at the
+-- given Axis. This is a heuristic that may have false positives, but it will
+-- not have false negatives.
+isConsistentWithCluesAtAxis :: PartialBoard -> Clues -> Axis -> Bool
+isConsistentWithCluesAtAxis pb cs a = (maybeTilesAt pb $ axis a) `isConsistentWithClue` clueAt cs a
+
+-- Tests whether the PartialBoard is complete with the given Clues at the given
+-- Axis.
+isCompleteWithCluesAtAxis :: PartialBoard -> Clues -> Axis -> Bool
+isCompleteWithCluesAtAxis pb cs a = (maybeTilesAt pb $ axis a) `isCompleteWithClue` clueAt cs a
+
+-- Tests whether the PartialBoard is consistent with the given Clues. This is a
+-- heuristic that may have false positives, but no false negatives.
+isConsistentWithClues :: PartialBoard -> Clues -> Bool
+isConsistentWithClues pb cs = all (isConsistentWithCluesAtAxis pb cs) axes
+
+-- Tests whether the PartialBoard is complete with the given Clues.
+isCompleteWithClues :: PartialBoard -> Clues -> Bool
+isCompleteWithClues pb cs = all (isCompleteWithCluesAtAxis pb cs) axes

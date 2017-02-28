@@ -121,5 +121,5 @@ spec = do
       \b a -> getNumberOfVoltorbs (clueAtAxis b a) `shouldBe` numberOfVoltorbsAtAxis b a
 
   describe "cluesFor" $ do
-    it "returns Clues" $ property $ do
+    it "returns Clues containing the Clue for each Axis" $ property $ do
       \b a -> cluesFor b `clueAt` a `shouldBe` clueAtAxis b a

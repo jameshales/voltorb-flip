@@ -30,9 +30,9 @@ spec = do
     it "returns a valid Game" $ property $ do
       \g p -> flipTileAt g p `shouldSatisfy` isValidGame
     it "does not modify the Board" $ property $ do
-      \g p -> let (b, _) = unGame g in (fst $ unGame $ flipTileAt p g) `shouldBe` b
+      \g p -> let (b, _) = unGame g in (getGameBoard $ flipTileAt p g) `shouldBe` b
     it "flips the Tile at the given Position of the PartialBoard" $ property $ do
-      \g p -> let (b, pb) = unGame g in (snd $ unGame $ flipTileAt p g) `shouldBe` flipTileAtWith b p pb
+      \g p -> let (b, pb) = unGame g in (getGamePartialBoard $ flipTileAt p g) `shouldBe` flipTileAtWith b p pb
 
   describe "isComplete" $ do
     context "given a complete PartialBoard" $ do

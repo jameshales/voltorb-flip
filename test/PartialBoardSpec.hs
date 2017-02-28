@@ -8,7 +8,7 @@ import Test.Hspec
 import Test.QuickCheck
 
 import ArbitraryInstances
-import Board (tileAt, tilesAt)
+import Board (cluesFor, tileAt, tilesAt)
 import PartialBoard
 import Position (Position)
 import Tile (Tile)
@@ -119,3 +119,25 @@ spec = do
       it "returns False" $ property $ do
         (b, pb) <- genIncompletePartialBoard
         return $ isCompleteWith pb b `shouldBe` False
+
+  describe "isConsistentWithClues" $ do
+    context "given an empty PartialBoard" $
+      it "returns True" $ property $ do
+        \cs -> isConsistentWithClues emptyBoard cs `shouldBe` True
+    context "given a PartialBoard with all of the flipped Tiles equal to the corresponding Tiles in the given Board and Clues" $
+      it "returns True" $ property $ do
+        (b, pb) <- genConsistentPartialBoard
+        let cs = cluesFor b
+        return $ isConsistentWithClues pb cs `shouldBe` True
+
+  describe "isCompleteWithClues" $ do
+    context "given a PartialBoard with all of the non-trivial Tiles flipped" $
+      it "returns True" $ property $ do
+        (b, pb) <- genCompletePartialBoard
+        let cs = cluesFor b
+        return $ isCompleteWithClues pb cs `shouldBe` True
+    context "given a PartialBoard with a non-trivial Tile unflipped" $
+      it "returns False" $ property $ do
+        (b, pb) <- genIncompletePartialBoard
+        let cs = cluesFor b
+        return $ isCompleteWithClues pb cs `shouldBe` False
