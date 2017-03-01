@@ -39,31 +39,31 @@ position = Position
 unPosition :: Position -> (Coordinate, Coordinate)
 unPosition (Position x y) = (x, y)
 
--- Returns a list of all Positions with the given row Coordinate, in ascending
--- order of column Coordinate.
+-- Returns a list of all Positions with the given Y Coordinate, in ascending
+-- order of X Coordinate.
 row :: Coordinate -> [Position]
 row y = [position x y | x <- coordinates]
 
--- Returns a list of all rows, in ascending order of row Coordinate.
+-- Returns a list of all rows, in ascending order of Y Coordinate.
 rows :: [[Position]]
 rows = [row y | y <- coordinates]
 
--- Returns a list of all Positions, in ascending order of row and then column
--- Coordinate.
+-- Returns a list of all Positions, in ascending order of Y and then ascending
+-- order of X Coordinate.
 positionsByRow :: [Position]
 positionsByRow = concat rows
 
--- Returns a list of all Positions with the given column Coordinate, in ascending
--- order of row Coordinate.
+-- Returns a list of all Positions with the given X Coordinate, in ascending
+-- order of Y Coordinate.
 column :: Coordinate -> [Position]
 column x = [position x y | y <- coordinates]
 
--- Returns a list of all columns, in ascending order of column Coordinate.
+-- Returns a list of all columns, in ascending order of X Coordinate.
 columns :: [[Position]]
 columns = [column x | x <- coordinates]
 
--- Returns a list of all Positions, in ascending order of column and then row
--- Coordinate.
+-- Returns a list of all Positions, in ascending order of X Coordinate and then
+-- ascending order of Y Coordinate.
 positionsByColumn :: [Position]
 positionsByColumn = concat columns
 

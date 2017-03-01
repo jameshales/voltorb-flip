@@ -13,15 +13,57 @@ import Position
 outOfBoundsError :: Selector ErrorCall
 outOfBoundsError = errorCall "Position out of bounds"
 
+positionBeforeRowEnd :: Gen Position
+positionBeforeRowEnd = position <$> arbitrary `suchThat` (/=) maxBound <*> arbitrary
+
+positionAtRowEnd :: Gen Position
+positionAtRowEnd = position maxBound <$> arbitrary `suchThat` (/=) maxBound
+
+positionAfterRowStart :: Gen Position
+positionAfterRowStart = position <$> arbitrary `suchThat` (/=) minBound <*> arbitrary
+
+positionAtRowStart :: Gen Position
+positionAtRowStart = position minBound <$> arbitrary `suchThat` (/= minBound)
+
 spec :: Spec
 spec = do
   describe "instance Enum Position" $ do
     describe "succ" $ do
-      it "returns an error on maxBound" $ do
-        evaluate (succ maxBound :: Position) `shouldThrow` outOfBoundsError
+      context "given a Position before the end of a row" $ do
+        it "increments the X coordinate" $ property $ do
+          p <- positionBeforeRowEnd
+          return $ getX (succ p) `shouldBe` succ (getX p)
+        it "keeps the Y coordinate the same" $ property $ do
+          p <- positionBeforeRowEnd
+          return $ getY (succ p) `shouldBe` getY p
+      context "given a Position at the end of a row (but not maxBound)" $ do
+        it "increments the Y coordinate" $ property $ do
+          p <- positionAtRowEnd
+          return $ getY (succ p) `shouldBe` succ (getY p)
+        it "resets the X coordinate to 0" $ property $ do
+          p <- positionAtRowEnd
+          return $ getX (succ p) `shouldBe` minBound
+      context "given maxBound" $ do
+        it "returns an error" $ do
+          evaluate (succ maxBound :: Position) `shouldThrow` outOfBoundsError
     describe "pred" $ do
-      it "returns an error on minBound" $ do
-        evaluate (pred minBound :: Position) `shouldThrow` outOfBoundsError
+      context "given a Position after the start of a row" $ do
+        it "decrements the X coordinate" $ property $ do
+          p <- positionAfterRowStart
+          return $ getX (pred p) `shouldBe` pred (getX p)
+        it "keeps the Y coordinate the same" $ property $ do
+          p <- positionAfterRowStart
+          return $ getY (pred p) `shouldBe` getY p
+      context "given a Position at the start of a row (but not minBound)" $ do
+        it "decrements the Y coordinate" $ property $ do
+          p <- positionAtRowStart
+          return $ getY (pred p) `shouldBe` pred (getY p)
+        it "resets the X coordinate to maxBound" $ property $ do
+          p <- positionAtRowStart
+          return $ getX (pred p) `shouldBe` maxBound
+      context "given minBound" $ do
+        it "returns an error" $ do
+          evaluate (pred minBound :: Position) `shouldThrow` outOfBoundsError
     describe "toEnum" $ do
       context "when the value is less than 0" $ do
         it "returns an error" $ property $ do
@@ -40,72 +82,84 @@ spec = do
         \p -> (toEnum $ fromEnum p :: Position) `shouldBe` p
 
   describe "position" $ do
-    it "returns a position with the given x coordinate" $ property $
+    it "returns a Position with the given x coordinate" $ property $
       \x y -> getX (position x y) `shouldBe` x
-    it "returns a position with the given y coordinate" $ property $
+    it "returns a Position with the given y coordinate" $ property $
       \x y -> getY (position x y) `shouldBe` y
     it "is inverted by unPosition" $ property $
       \x y -> unPosition (position x y) `shouldBe` (x, y)
 
   describe "row" $ do
-    it "returns a list of 5 positions" $ property $
+    it "returns a list of 5 Positions" $ property $
       \y -> length (row y) `shouldBe` 5
-    it "returns a list of positions in sorted order" $ property $
+    it "returns a list of Positions in sorted order" $ property $
       \y -> sort (row y) `shouldBe` row y
-    it "returns a list of positions with the given y coordinate" $ property $
+    it "returns a list of Positions with the given y coordinate" $ property $
       \y -> row y `shouldSatisfy` (all (\p -> getY p == y))
+    it "returns a list of distinct Positions" $ property $
+      \x -> nub (row x) `shouldBe` row x
 
   describe "column" $ do
-    it "returns a list of 5 positions" $ property $
+    it "returns a list of 5 Positions" $ property $
       \x -> length (column x) `shouldBe` 5
-    it "returns a list of positions in sorted order" $ property $
+    it "returns a list of Positions in sorted order" $ property $
       \x -> sort (column x) `shouldBe` column x
-    it "returns a list of positions with the given x coordinate" $ property $
+    it "returns a list of Positions with the given x coordinate" $ property $
       \x -> column x `shouldSatisfy` (all (\p -> getX p == x))
+    it "returns a list of distinct Positions" $ property $
+      \x -> nub (column x) `shouldBe` column x
 
   describe "rows" $ do
-    it "returns a list of 5 lists of positions" $ do
+    it "returns a list of 5 lists of Positions" $ do
       length rows `shouldBe` 5
-    it "returns a list of lists of 5 positions" $ do
+    it "returns a list of lists of 5 Positions" $ do
       rows `shouldSatisfy` all (\r -> length r == 5)
-    it "returns a list of lists of positions sorted by y coordinate" $ do
-      let sortedRows = map (getY . head) rows
-      sort sortedRows `shouldBe` sortedRows
+    it "returns a list of lists of Positions sorted by Y coordinate" $ do
+      let ys = map (getY . head) rows
+      sort ys `shouldBe` ys
+    it "returns a list of lists of Positions with distinct Y coordinate" $ do
+      let ys = map (getY . head) rows
+      nub ys `shouldBe` ys
     it "returns a list of rows" $ do
       map (row . getY . head) rows `shouldBe` rows
 
   describe "columns" $ do
-    it "returns a list of 5 lists of positions" $ do
+    it "returns a list of 5 lists of Positions" $ do
       length columns `shouldBe` 5
-    it "returns a list of lists of 5 positions" $ do
+    it "returns a list of lists of 5 Positions" $ do
       columns `shouldSatisfy` all (\r -> length r == 5)
-    it "returns a list of lists of positions sorted by y coordinate" $ do
-      let sortedColumns = map (getX . head) columns
-      sort sortedColumns `shouldBe` sortedColumns
+    it "returns a list of lists of Positions sorted by Y coordinate" $ do
+      let xs = map (getX . head) columns
+      sort xs `shouldBe` xs
+    it "returns a list of lists of Positions with distinct Y coordinate" $ do
+      let xs = map (getX . head) columns
+      nub xs `shouldBe` xs
     it "returns a list of columns" $ do
       map (column . getX . head) columns `shouldBe` columns
 
   describe "positionsByRow" $ do
-    it "returns a list of 25 positions" $ do
+    it "returns a list of 25 Positions" $ do
       length positionsByRow `shouldBe` 25
-    it "returns a list of distinct positions" $ do
+    it "returns a list of distinct Positions" $ do
       nub positionsByRow `shouldBe` positionsByRow
-    it "returns a list of positions sorted by row then by column" $ do
+    it "returns a list of Positions sorted by row then by column" $ do
       sortBy (comparing (\p -> (getY p, getX p))) positionsByRow `shouldBe` positionsByRow
 
   describe "positionsByColumn" $ do
-    it "returns a list of 25 positions" $ do
+    it "returns a list of 25 Positions" $ do
       length positionsByColumn `shouldBe` 25
-    it "returns a list of distinct positions" $ do
+    it "returns a list of distinct Positions" $ do
       nub positionsByColumn `shouldBe` positionsByColumn
-    it "returns a list of positions sorted by column then by row" $ do
+    it "returns a list of Positions sorted by column then by row" $ do
       sortBy (comparing (\p -> (getX p, getY p))) positionsByColumn `shouldBe` positionsByColumn
 
   describe "axis" $ do
     it "returns a list of 5 columns" $ property $ do
       \a -> length (axis a) `shouldBe` 5
-    it "returns a list of positions in sorted order" $ property $ do
+    it "returns a list of Positions in sorted order" $ property $ do
       \a -> sort (axis a) `shouldBe` axis a
+    it "returns a list of distinct Positions" $ property $ do
+      \a -> nub (axis a) `shouldBe` axis a
     context "given (Column c)" $ do
       it "returns (column c)" $ property $ do
         c <- arbitrary
