@@ -41,9 +41,9 @@ spec = do
 
   describe "position" $ do
     it "returns a position with the given x coordinate" $ property $
-      \x y -> columnOf (position x y) `shouldBe` x
+      \x y -> getX (position x y) `shouldBe` x
     it "returns a position with the given y coordinate" $ property $
-      \x y -> rowOf (position x y) `shouldBe` y
+      \x y -> getY (position x y) `shouldBe` y
     it "is inverted by unPosition" $ property $
       \x y -> unPosition (position x y) `shouldBe` (x, y)
 
@@ -53,7 +53,7 @@ spec = do
     it "returns a list of positions in sorted order" $ property $
       \y -> sort (row y) `shouldBe` row y
     it "returns a list of positions with the given y coordinate" $ property $
-      \y -> row y `shouldSatisfy` (all (\p -> rowOf p == y))
+      \y -> row y `shouldSatisfy` (all (\p -> getY p == y))
 
   describe "column" $ do
     it "returns a list of 5 positions" $ property $
@@ -61,7 +61,7 @@ spec = do
     it "returns a list of positions in sorted order" $ property $
       \x -> sort (column x) `shouldBe` column x
     it "returns a list of positions with the given x coordinate" $ property $
-      \x -> column x `shouldSatisfy` (all (\p -> columnOf p == x))
+      \x -> column x `shouldSatisfy` (all (\p -> getX p == x))
 
   describe "rows" $ do
     it "returns a list of 5 lists of positions" $ do
@@ -69,10 +69,10 @@ spec = do
     it "returns a list of lists of 5 positions" $ do
       rows `shouldSatisfy` all (\r -> length r == 5)
     it "returns a list of lists of positions sorted by y coordinate" $ do
-      let sortedRows = map (rowOf . head) rows
+      let sortedRows = map (getY . head) rows
       sort sortedRows `shouldBe` sortedRows
     it "returns a list of rows" $ do
-      map (row . rowOf . head) rows `shouldBe` rows
+      map (row . getY . head) rows `shouldBe` rows
 
   describe "columns" $ do
     it "returns a list of 5 lists of positions" $ do
@@ -80,10 +80,10 @@ spec = do
     it "returns a list of lists of 5 positions" $ do
       columns `shouldSatisfy` all (\r -> length r == 5)
     it "returns a list of lists of positions sorted by y coordinate" $ do
-      let sortedColumns = map (columnOf . head) columns
+      let sortedColumns = map (getX . head) columns
       sort sortedColumns `shouldBe` sortedColumns
     it "returns a list of columns" $ do
-      map (column . columnOf . head) columns `shouldBe` columns
+      map (column . getX . head) columns `shouldBe` columns
 
   describe "positionsByRow" $ do
     it "returns a list of 25 positions" $ do
@@ -91,7 +91,7 @@ spec = do
     it "returns a list of distinct positions" $ do
       nub positionsByRow `shouldBe` positionsByRow
     it "returns a list of positions sorted by row then by column" $ do
-      sortBy (comparing (\p -> (rowOf p, columnOf p))) positionsByRow `shouldBe` positionsByRow
+      sortBy (comparing (\p -> (getY p, getX p))) positionsByRow `shouldBe` positionsByRow
 
   describe "positionsByColumn" $ do
     it "returns a list of 25 positions" $ do
@@ -99,7 +99,7 @@ spec = do
     it "returns a list of distinct positions" $ do
       nub positionsByColumn `shouldBe` positionsByColumn
     it "returns a list of positions sorted by column then by row" $ do
-      sortBy (comparing (\p -> (columnOf p, rowOf p))) positionsByColumn `shouldBe` positionsByColumn
+      sortBy (comparing (\p -> (getX p, getY p))) positionsByColumn `shouldBe` positionsByColumn
 
   describe "axis" $ do
     it "returns a list of 5 columns" $ property $ do
