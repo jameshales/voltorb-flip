@@ -1,11 +1,13 @@
 module Axis
   ( Axis(..)
   , axes
+  , columnAxes
+  , rowAxes
   ) where
 
 import Data.Ix (Ix, index, inRange, range, rangeSize)
 
-import Coordinate (Coordinate, coordinate, unCoordinate)
+import Coordinate (Coordinate, coordinate, coordinates, unCoordinate)
 
 data Axis = Row Coordinate | Column Coordinate
   deriving (Eq, Ord, Show)
@@ -34,3 +36,9 @@ instance Ix Axis where
 
 axes :: [Axis]
 axes = [minBound .. maxBound]
+
+columnAxes :: [Axis]
+columnAxes = map Column coordinates
+
+rowAxes :: [Axis]
+rowAxes = map Row coordinates

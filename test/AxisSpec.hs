@@ -2,6 +2,7 @@ module AxisSpec (spec) where
 
 import Control.Exception (ErrorCall, evaluate)
 import Data.Ix
+import Data.List (nub, sort)
 import Test.Hspec
 import Test.QuickCheck
 
@@ -64,3 +65,27 @@ spec = do
   describe "axes" $ do
     it "returns a list of all Axes" $ property $ do
       \a -> axes `shouldSatisfy` elem a
+    it "returns a sorted list of Axes" $ do
+      sort axes `shouldBe` axes
+    it "returns a distinct list of Axes" $ do
+      nub axes `shouldBe` axes
+
+  describe "columnAxes" $ do
+    it "returns a list of all Column Axes" $ property $ do
+      \c -> columnAxes `shouldSatisfy` elem (Column c)
+    it "returns a list of only Column Axes" $ do
+      all (\a -> case a of (Column _) -> True; (Row _) -> False) columnAxes
+    it "returns a sorted list of Axes" $ do
+      sort columnAxes `shouldBe` columnAxes
+    it "returns a distinct list of Axes" $ do
+      nub columnAxes `shouldBe` columnAxes
+
+  describe "rowAxes" $ do
+    it "returns a list of all Row Axes" $ property $ do
+      \c -> rowAxes `shouldSatisfy` elem (Row c)
+    it "returns a list of only Row Axes" $ do
+      all (\a -> case a of (Row _) -> True; (Column _) -> False) rowAxes
+    it "returns a sorted list of Axes" $ do
+      sort rowAxes `shouldBe` rowAxes
+    it "returns a distinct list of Axes" $ do
+      nub rowAxes `shouldBe` rowAxes
