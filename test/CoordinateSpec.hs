@@ -5,8 +5,10 @@ import Data.List (nub, sort)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances ()
 import Coordinate
+
+instance Arbitrary Coordinate where
+  arbitrary = elements coordinates
 
 outOfBoundsError :: Selector ErrorCall
 outOfBoundsError = errorCall "Coordinate out of bounds"

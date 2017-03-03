@@ -4,8 +4,13 @@ import Control.Exception (evaluate)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances ()
 import Clue
+
+instance Arbitrary Clue where
+  arbitrary = do
+    s <- choose (0, 15)
+    n <- choose (0, 5)
+    return $ clue s n
 
 spec :: Spec
 spec = do

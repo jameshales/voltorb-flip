@@ -4,11 +4,12 @@ import Test.Hspec
 import Test.QuickCheck
 import Text.Parsec (parse)
 
-import ArbitraryInstances ()
 import PartialBoardParser
+
+import PartialBoardSpec ()
 
 spec :: Spec
 spec = do
   describe "pPartialBoard" $ do
     it "inverts show" $ property $ do
-      \b -> parse pPartialBoard "" (show b) `shouldBe` Right b
+      \pb -> parse pPartialBoard "" (show pb) `shouldBe` Right pb

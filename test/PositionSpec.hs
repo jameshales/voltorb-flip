@@ -6,12 +6,14 @@ import Data.Ord (comparing)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances ()
 import Axis (Axis(Column, Row))
 import Position
 
-outOfBoundsError :: Selector ErrorCall
-outOfBoundsError = errorCall "Position out of bounds"
+import CoordinateSpec ()
+import AxisSpec ()
+
+instance Arbitrary Position where
+  arbitrary = elements positionsByColumn
 
 positionBeforeRowEnd :: Gen Position
 positionBeforeRowEnd = position <$> arbitrary `suchThat` (/=) maxBound <*> arbitrary
@@ -24,6 +26,9 @@ positionAfterRowStart = position <$> arbitrary `suchThat` (/=) minBound <*> arbi
 
 positionAtRowStart :: Gen Position
 positionAtRowStart = position minBound <$> arbitrary `suchThat` (/= minBound)
+
+outOfBoundsError :: Selector ErrorCall
+outOfBoundsError = errorCall "Position out of bounds"
 
 spec :: Spec
 spec = do

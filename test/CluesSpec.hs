@@ -1,19 +1,29 @@
 module CluesSpec (spec) where
 
 import Control.Exception (evaluate)
-import Data.Array (listArray)
+import Data.Array (Array, array, listArray)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances
+import Axis (Axis, axes)
+import Clue (Clue)
 import Clues
+
+import AxisSpec ()
+import ClueSpec ()
+
+cluesArray :: Gen (Array Axis Clue)
+cluesArray = fmap (array (minBound, maxBound) . zip axes) $ infiniteListOf arbitrary
+
+instance Arbitrary Clues where
+  arbitrary = fmap clues cluesArray
 
 spec :: Spec
 spec = do
   describe "clues" $ do
     context "given a valid Array of Clues" $ do
       it "is inverted by unClues" $ property $ do
-        a <- genClueArray
+        a <- cluesArray
         return $ unClues (clues a) `shouldBe` a
     context "given an Array with bounds not equal to (minBound, maxBound)" $ do
       it "returns an error" $ property $ do

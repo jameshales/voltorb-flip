@@ -1,23 +1,67 @@
-module PartialBoardSpec (spec) where
+module PartialBoardSpec
+  ( spec
+  , completePartialBoard
+  , consistentPartialBoard
+  , incompletePartialBoard
+  , inconsistentPartialBoard
+  ) where
 
 import Control.Exception (evaluate)
-import Data.Array (listArray)
+import Data.Array (Array, array, listArray)
 import Data.Function (on)
 import Data.List (nubBy)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances
-import Board (cluesFor, tileAt, tilesAt)
+import Board (Board, cluesFor, findOptionalTiles, findRequiredTiles, tileAt, tilesAt)
 import PartialBoard
-import Position (Position)
+import Position (Position, positionsByColumn)
 import Tile (Tile)
 
-genAssocs :: Gen [(Position, Maybe Tile)]
-genAssocs = fmap (nubBy ((==) `on` fst)) arbitrary
+import BoardSpec ()
+import CluesSpec ()
+import PositionSpec ()
+import TileSpec ()
 
-genAssocsTuple :: Gen ([Position], [Maybe Tile])
-genAssocsTuple = fmap unzip genAssocs
+partialBoardArray :: Gen (Array Position (Maybe Tile))
+partialBoardArray = fmap (array (minBound, maxBound) . zip positionsByColumn) $ infiniteListOf arbitrary
+
+instance Arbitrary PartialBoard where
+  arbitrary = fmap partialBoard partialBoardArray
+
+partialBoardAssocs :: Gen [(Position, Maybe Tile)]
+partialBoardAssocs = fmap (nubBy ((==) `on` fst)) arbitrary
+
+partialBoardAssocsTuple :: Gen ([Position], [Maybe Tile])
+partialBoardAssocsTuple = fmap unzip partialBoardAssocs
+
+consistentPartialBoard :: Gen (Board, PartialBoard)
+consistentPartialBoard = do
+  b  <- arbitrary
+  pb <- fmap (flipTilesAtWith emptyBoard b) $ sublistOf positionsByColumn
+  return (b, pb)
+
+inconsistentPartialBoard :: Gen (Board, PartialBoard)
+inconsistentPartialBoard = do
+  b   <- arbitrary
+  p   <- arbitrary
+  t   <- arbitrary `suchThat` (tileAt b p /=)
+  pb  <- fmap (\pb -> updateMaybeTileAt pb p $ Just t) arbitrary
+  return (b, pb)
+
+completePartialBoard :: Gen (Board, PartialBoard)
+completePartialBoard = do
+  b  <- arbitrary
+  ps <- (findRequiredTiles b ++) <$> sublistOf (findOptionalTiles b)
+  let pb = flipTilesAtWith emptyBoard b ps
+  return (b, pb)
+
+incompletePartialBoard :: Gen (Board, PartialBoard)
+incompletePartialBoard = do
+  b  <- arbitrary `suchThat` (not . null . findRequiredTiles)
+  ps <- let ns = findRequiredTiles b in (++) <$> sublistOf (findOptionalTiles b) <*> sublistOf ns `suchThat` (/=) ns
+  let pb = flipTilesAtWith emptyBoard b ps
+  return (b, pb)
 
 fst3 :: (a, b, c) -> a
 fst3 (a, _, _) = a
@@ -27,7 +71,7 @@ spec = do
   describe "partialBoard" $ do
     context "given a valid Array of Maybe Tiles" $ do
       it "is inverted by unPartialBoard" $ property $ do
-        a <- genMaybeTileArray
+        a <- partialBoardArray
         return $ unPartialBoard (partialBoard a) `shouldBe` a
     context "given an Array with bounds less than (minBound, maxBound)" $ do
       it "returns an error" $ property $ do
@@ -58,7 +102,7 @@ spec = do
     context "getting the Maybe Tiles at some Positions of a PartialBoard that were just updated" $ do
       it "returns the Tiles that were updated" $ property $ do
         pb <- arbitrary
-        (ps, mts) <- genAssocsTuple
+        (ps, mts) <- partialBoardAssocsTuple
         return $ maybeTilesAt (updateMaybeTilesAt pb $ ps `zip` mts) ps `shouldBe` mts
 
   describe "updateMaybeTilesAt" $ do
@@ -81,7 +125,7 @@ spec = do
     it "otherwise leaves the PartialBoard unchanged" $ property $ do
       \pb b p p' -> p /= p' ==> maybeTileAt (flipTileAtWith b p pb) p' `shouldBe` maybeTileAt pb p'
     it "preserves the consistency of a PartialBoard" $ property $ do
-      (b, pb) <- genConsistentPartialBoard
+      (b, pb) <- consistentPartialBoard
       p       <- arbitrary
       return $ flipTileAtWith b p pb `shouldSatisfy` flip isConsistentWith b
 
@@ -93,7 +137,7 @@ spec = do
     it "otherwise leaves the PartialBoard unchanged" $ property $ do
       \pb b ps p -> not (p `elem` ps) ==> maybeTileAt (flipTilesAtWith pb b ps) p `shouldBe` maybeTileAt pb p
     it "preserves the consistency of a PartialBoard" $ property $ do
-      (b, pb) <- genConsistentPartialBoard
+      (b, pb) <- consistentPartialBoard
       ps      <- arbitrary
       return $ flipTilesAtWith pb b ps `shouldSatisfy` flip isConsistentWith b
 
@@ -103,21 +147,21 @@ spec = do
         \b -> isConsistentWith emptyBoard b `shouldBe` True
     context "given a PartialBoard with all of the flipped Tiles equal to the corresponding Tiles in the given Board" $
       it "returns True" $ property $ do
-        (b, pb) <- genConsistentPartialBoard
+        (b, pb) <- consistentPartialBoard
         return $ isConsistentWith pb b `shouldBe` True
     context "given a PartialBoard with some of the flipped Tiles not equal to the corresponding Tiles in the given Board" $
       it "returns False" $ property $ do
-        (b, pb) <- genInconsistentPartialBoard
+        (b, pb) <- inconsistentPartialBoard
         return $ isConsistentWith pb b `shouldBe` False
 
   describe "isCompleteWith" $ do
     context "given a PartialBoard with all of the non-trivial Tiles flipped" $
       it "returns True" $ property $ do
-        (b, pb) <- genCompletePartialBoard
+        (b, pb) <- completePartialBoard
         return $ isCompleteWith pb b `shouldBe` True
     context "given a PartialBoard with a non-trivial Tile unflipped" $
       it "returns False" $ property $ do
-        (b, pb) <- genIncompletePartialBoard
+        (b, pb) <- incompletePartialBoard
         return $ isCompleteWith pb b `shouldBe` False
 
   describe "isConsistentWithClues" $ do
@@ -126,18 +170,18 @@ spec = do
         \cs -> isConsistentWithClues emptyBoard cs `shouldBe` True
     context "given a PartialBoard with all of the flipped Tiles equal to the corresponding Tiles in the given Board and Clues" $
       it "returns True" $ property $ do
-        (b, pb) <- genConsistentPartialBoard
+        (b, pb) <- consistentPartialBoard
         let cs = cluesFor b
         return $ isConsistentWithClues pb cs `shouldBe` True
 
   describe "isCompleteWithClues" $ do
     context "given a PartialBoard with all of the non-trivial Tiles flipped" $
       it "returns True" $ property $ do
-        (b, pb) <- genCompletePartialBoard
+        (b, pb) <- completePartialBoard
         let cs = cluesFor b
         return $ isCompleteWithClues pb cs `shouldBe` True
     context "given a PartialBoard with a non-trivial Tile unflipped" $
       it "returns False" $ property $ do
-        (b, pb) <- genIncompletePartialBoard
+        (b, pb) <- incompletePartialBoard
         let cs = cluesFor b
         return $ isCompleteWithClues pb cs `shouldBe` False

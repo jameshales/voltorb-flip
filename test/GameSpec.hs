@@ -4,20 +4,30 @@ import Control.Exception (evaluate)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances (genCompleteGame, genConsistentPartialBoard, genIncompleteGame, genInconsistentPartialBoard)
 import Game
 import PartialBoard (emptyBoard, flipTileAtWith)
+
+import PartialBoardSpec (completePartialBoard, consistentPartialBoard, incompletePartialBoard, inconsistentPartialBoard)
+
+completeGame :: Gen Game
+completeGame = uncurry game <$> completePartialBoard
+
+incompleteGame :: Gen Game
+incompleteGame = uncurry game <$> incompletePartialBoard
+
+instance Arbitrary Game where
+  arbitrary = uncurry game <$> consistentPartialBoard
 
 spec :: Spec
 spec = do
   describe "game" $ do
     context "given a Board and a consistent PartialBoard" $ do
       it "is inverted by unGame" $ property $ do
-        (b, pb) <- genConsistentPartialBoard
+        (b, pb) <- consistentPartialBoard
         return $ unGame (game b pb) `shouldBe` (b, pb)
     context "given a Board and an inconsistent PartialBoard" $ do
       it "returns an error" $ property $ do
-        (b, pb) <- genInconsistentPartialBoard
+        (b, pb) <- inconsistentPartialBoard
         return $ evaluate (game b pb) `shouldThrow` errorCall "PartialBoard is not consistent with Board"
 
   describe "newGame" $ do
@@ -37,9 +47,9 @@ spec = do
   describe "isComplete" $ do
     context "given a complete PartialBoard" $ do
       it "returns True" $ property $ do
-        g <- genCompleteGame
+        g <- completeGame
         return $ isComplete g `shouldBe` True
     context "given an incomplete PartialBoard" $ do
       it "returns False" $ property $ do
-        g <- genIncompleteGame
+        g <- incompleteGame
         return $ isComplete g `shouldBe` False

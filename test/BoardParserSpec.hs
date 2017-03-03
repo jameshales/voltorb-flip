@@ -4,8 +4,9 @@ import Test.Hspec
 import Test.QuickCheck
 import Text.Parsec (parse)
 
-import ArbitraryInstances ()
 import BoardParser
+
+import BoardSpec ()
 
 spec :: Spec
 spec = do

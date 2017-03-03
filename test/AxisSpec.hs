@@ -6,8 +6,18 @@ import Data.List (nub, sort)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances ()
 import Axis
+
+import CoordinateSpec ()
+
+genColumn :: Gen Axis
+genColumn = fmap Column arbitrary
+
+genRow :: Gen Axis
+genRow = fmap Row arbitrary
+
+instance Arbitrary Axis where
+  arbitrary = oneof [genColumn, genRow]
 
 outOfBoundsError :: Selector ErrorCall
 outOfBoundsError = errorCall "Axis out of bounds"

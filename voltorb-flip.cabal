@@ -50,10 +50,9 @@ test-suite voltorb-flip-test
                      , hspec == 2.*
                      , parsec >= 3.1.0
                      , voltorb-flip
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N -fno-warn-orphans
   default-language:    Haskell2010
-  other-modules:       ArbitraryInstances
-                     , AxisSpec
+  other-modules:       AxisSpec
                      , BoardSpec
                      , BoardParserSpec
                      , ClueSpec

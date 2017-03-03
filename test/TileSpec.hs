@@ -5,8 +5,10 @@ import Data.List (nub, sort)
 import Test.Hspec
 import Test.QuickCheck
 
-import ArbitraryInstances ()
 import Tile
+
+instance Arbitrary Tile where
+  arbitrary = elements tiles
 
 outOfBoundsError :: Selector ErrorCall
 outOfBoundsError = errorCall "Tile out of bounds"
