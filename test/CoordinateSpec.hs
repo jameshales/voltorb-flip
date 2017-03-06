@@ -24,34 +24,34 @@ spec = do
         evaluate (pred (minBound :: Coordinate)) `shouldThrow` outOfBoundsError
     describe "toEnum" $ do
       context "when the value is less than 0" $ do
-        it "returns an error" $ property $ do
-          i <- choose (minBound, 0)
-          return $ evaluate (toEnum i :: Coordinate) `shouldThrow` outOfBoundsError
+        it "returns an error" $ property $
+          forAll (choose (minBound, 0)) $ \i ->
+            evaluate (toEnum i :: Coordinate) `shouldThrow` outOfBoundsError
       context "when the value is greater than 4" $ do
-        it "returns an error" $ property $ do
-          i <- choose (5, maxBound)
-          return $ evaluate (toEnum i :: Coordinate) `shouldThrow` outOfBoundsError
+        it "returns an error" $ property $
+          forAll (choose (5, maxBound)) $ \i ->
+            evaluate (toEnum i :: Coordinate) `shouldThrow` outOfBoundsError
       context "otherwise" $ do
-        it "is inverted by fromEnum" $ property $ do
-          i <- choose (0, 4)
-          return $ (fromEnum $ (toEnum i :: Coordinate)) `shouldBe` i
+        it "is inverted by fromEnum" $ property $
+          forAll (choose (0, 4)) $ \i ->
+            (fromEnum $ (toEnum i :: Coordinate)) `shouldBe` i
     describe "fromEnum" $ do
       it "is inverted by toEnum" $ property $
         \c -> (toEnum $ fromEnum c :: Coordinate) `shouldBe` c
 
   describe "coordinate" $ do
     context "when the value is less than 0" $ do
-      it "returns an error" $ property $ do
-        i <- choose (minBound, 0)
-        return $ evaluate (coordinate i) `shouldThrow` anyException
+      it "returns an error" $ property $
+        forAll (choose (minBound, 0)) $ \i ->
+          evaluate (coordinate i) `shouldThrow` anyException
     context "when the value is greater than 4" $ do
-      it "returns an error" $ property $ do
-        i <- choose (5, maxBound)
-        return $ evaluate (coordinate i) `shouldThrow` anyException
+      it "returns an error" $ property $
+        forAll (choose (5, maxBound)) $ \i ->
+          evaluate (coordinate i) `shouldThrow` anyException
     context "otherwise" $ do
-      it "is inverted by unCoordinate" $ property $ do
-        i <- choose (0, 4)
-        return $ unCoordinate (coordinate i) `shouldBe` i
+      it "is inverted by unCoordinate" $ property $
+        forAll (choose (0, 4)) $ \i ->
+          unCoordinate (coordinate i) `shouldBe` i
 
   describe "coordinates" $ do
     it "returns a list of 5 coordinates" $ do

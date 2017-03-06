@@ -35,53 +35,53 @@ spec = do
   describe "instance Enum Position" $ do
     describe "succ" $ do
       context "given a Position before the end of a row" $ do
-        it "increments the X coordinate" $ property $ do
-          p <- positionBeforeRowEnd
-          return $ getX (succ p) `shouldBe` succ (getX p)
-        it "keeps the Y coordinate the same" $ property $ do
-          p <- positionBeforeRowEnd
-          return $ getY (succ p) `shouldBe` getY p
+        it "increments the X coordinate" $ property $
+          forAll (positionBeforeRowEnd) $ \p ->
+            getX (succ p) `shouldBe` succ (getX p)
+        it "keeps the Y coordinate the same" $ property $
+          forAll (positionBeforeRowEnd) $ \p ->
+            getY (succ p) `shouldBe` getY p
       context "given a Position at the end of a row (but not maxBound)" $ do
-        it "increments the Y coordinate" $ property $ do
-          p <- positionAtRowEnd
-          return $ getY (succ p) `shouldBe` succ (getY p)
-        it "resets the X coordinate to 0" $ property $ do
-          p <- positionAtRowEnd
-          return $ getX (succ p) `shouldBe` minBound
+        it "increments the Y coordinate" $ property $
+          forAll (positionAtRowEnd) $ \p ->
+            getY (succ p) `shouldBe` succ (getY p)
+        it "resets the X coordinate to 0" $ property $
+          forAll (positionAtRowEnd) $ \p ->
+            getX (succ p) `shouldBe` minBound
       context "given maxBound" $ do
         it "returns an error" $ do
           evaluate (succ maxBound :: Position) `shouldThrow` outOfBoundsError
     describe "pred" $ do
       context "given a Position after the start of a row" $ do
-        it "decrements the X coordinate" $ property $ do
-          p <- positionAfterRowStart
-          return $ getX (pred p) `shouldBe` pred (getX p)
-        it "keeps the Y coordinate the same" $ property $ do
-          p <- positionAfterRowStart
-          return $ getY (pred p) `shouldBe` getY p
+        it "decrements the X coordinate" $ property $
+          forAll (positionAfterRowStart) $ \p ->
+            getX (pred p) `shouldBe` pred (getX p)
+        it "keeps the Y coordinate the same" $ property $
+          forAll (positionAfterRowStart) $ \p ->
+            getY (pred p) `shouldBe` getY p
       context "given a Position at the start of a row (but not minBound)" $ do
-        it "decrements the Y coordinate" $ property $ do
-          p <- positionAtRowStart
-          return $ getY (pred p) `shouldBe` pred (getY p)
-        it "resets the X coordinate to maxBound" $ property $ do
-          p <- positionAtRowStart
-          return $ getX (pred p) `shouldBe` maxBound
+        it "decrements the Y coordinate" $ property $
+          forAll (positionAtRowStart) $ \p ->
+            getY (pred p) `shouldBe` pred (getY p)
+        it "resets the X coordinate to maxBound" $ property $
+          forAll (positionAtRowStart) $ \p ->
+            getX (pred p) `shouldBe` maxBound
       context "given minBound" $ do
         it "returns an error" $ do
           evaluate (pred minBound :: Position) `shouldThrow` outOfBoundsError
     describe "toEnum" $ do
       context "when the value is less than 0" $ do
-        it "returns an error" $ property $ do
-          i <- choose (minBound, 0)
-          return $ evaluate (toEnum i :: Position) `shouldThrow` outOfBoundsError
+        it "returns an error" $ property $
+          forAll (choose (minBound, 0)) $ \i ->
+            evaluate (toEnum i :: Position) `shouldThrow` outOfBoundsError
       context "when the value is greater than 24" $ do
-        it "returns an error" $ property $ do
-          i <- choose (25, maxBound)
-          return $ evaluate (toEnum i :: Position) `shouldThrow` outOfBoundsError
+        it "returns an error" $ property $
+          forAll (choose (25, maxBound)) $ \i ->
+            evaluate (toEnum i :: Position) `shouldThrow` outOfBoundsError
       context "otherwise" $ do
-        it "is inverted by fromEnum" $ property $ do
-          i <- choose (0, 24)
-          return $ (fromEnum $ (toEnum i :: Position)) `shouldBe` i
+        it "is inverted by fromEnum" $ property $
+          forAll (choose (0, 24)) $ \i ->
+            (fromEnum $ (toEnum i :: Position)) `shouldBe` i
     describe "fromEnum" $ do
       it "is inverted by toEnum" $ property $
         \p -> (toEnum $ fromEnum p :: Position) `shouldBe` p
@@ -159,19 +159,19 @@ spec = do
       sortBy (comparing (\p -> (getX p, getY p))) positionsByColumn `shouldBe` positionsByColumn
 
   describe "axis" $ do
-    it "returns a list of 5 columns" $ property $ do
+    it "returns a list of 5 columns" $ property $
       \a -> length (axis a) `shouldBe` 5
-    it "returns a list of Positions in sorted order" $ property $ do
+    it "returns a list of Positions in sorted order" $ property $
       \a -> sort (axis a) `shouldBe` axis a
-    it "returns a list of distinct Positions" $ property $ do
+    it "returns a list of distinct Positions" $ property $
       \a -> nub (axis a) `shouldBe` axis a
     context "given (Column c)" $ do
-      it "returns (column c)" $ property $ do
-        c <- arbitrary
-        let a = Column c
-        return $ axis a `shouldBe` column c
+      it "returns (column c)" $ property $
+        forAll (arbitrary) $ \c ->
+        let a = Column c in
+          axis a `shouldBe` column c
     context "given (Row c)" $ do
-      it "returns (row c)" $ property $ do
-        c <- arbitrary
-        let a = Row c
-        return $ axis a `shouldBe` row c
+      it "returns (row c)" $ property $
+        forAll (arbitrary) $ \c ->
+        let a = Row c in
+          axis a `shouldBe` row c

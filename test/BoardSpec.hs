@@ -26,96 +26,96 @@ spec :: Spec
 spec = do
   describe "board" $ do
     context "given a valid Array of Tiles" $ do
-      it "is inverted by unBoard" $ property $ do
-        a <- completeBoundedArray
-        return $ unBoard (board a) `shouldBe` a
+      it "is inverted by unBoard" $ property $
+        forAll (completeBoundedArray) $ \a ->
+          unBoard (board a) `shouldBe` a
     context "given an Array with bounds less than (minBound, maxBound)" $ do
-      it "returns an error" $ property $ do
-        arr  <- incompleteBoundedArray
-        return $ evaluate (board arr) `shouldThrow` errorCall "Array does not have full bounds"
+      it "returns an error" $ property $
+        forAll (incompleteBoundedArray) $ \arr ->
+          evaluate (board arr) `shouldThrow` errorCall "Array does not have full bounds"
 
   describe "tileAt" $ do
     context "getting the Tile at a Position of a Board that was just updated" $ do
-      it "returns the Tile that was updated" $ property $ do
+      it "returns the Tile that was updated" $ property $
         \b p t -> tileAt (updateTileAt b p t) p `shouldBe` t
 
   describe "updateTileAt" $ do
-    it "returns a valid Board" $ property $ do
+    it "returns a valid Board" $ property $
       \b p t -> updateTileAt b p t `shouldSatisfy` isValidBoard
     context "updating the Tile at a Position of a Board with the Tile at that Position" $ do
-      it "returns the original Board" $ property $ do
+      it "returns the original Board" $ property $
         \b p -> updateTileAt b p (tileAt b p) `shouldBe` b
     context "updating a Tile at a Position of a Board twice" $ do
-      it "returns the same Board that results from only updating the Board the second time" $ property $ do
+      it "returns the same Board that results from only updating the Board the second time" $ property $
         \b p t t' -> updateTileAt (updateTileAt b p t) p t' `shouldBe` updateTileAt b p t'
 
   describe "tilesAt" $ do
     context "getting the Tiles at some Positions of a Board that were just updated" $ do
-      it "returns the Tiles that were updated" $ property $ do
-        b         <- arbitrary
-        (ps, ts)  <- distinctAssocsTuple
-        return $ tilesAt (updateTilesAt b $ ps `zip` ts) ps `shouldBe` ts
+      it "returns the Tiles that were updated" $ property $
+        forAll (arbitrary) $ \b ->
+        forAll (distinctAssocsTuple) $ \(ps, ts) ->
+          tilesAt (updateTilesAt b $ ps `zip` ts) ps `shouldBe` ts
 
   describe "updateTilesAt" $ do
-    it "returns a valid Board" $ property $ do
+    it "returns a valid Board" $ property $
       \b as -> updateTilesAt b as `shouldSatisfy` isValidBoard
     context "updating the Tiles at some Positions of a Board with the Tiles at those Positions" $ do
-      it "returns the original Board" $ property $ do
+      it "returns the original Board" $ property $
         \b ps -> updateTilesAt b (ps `zip` tilesAt b ps) `shouldBe` b
     context "updating some Tiles at some Positions of a Board twice" $ do
-      it "returns the same result Board that results from only updating the Board a second time" $ property $ do
-        b             <- arbitrary
-        (ps, ts, ts') <- fmap (unzip3 . nubBy ((==) `on` fst3)) arbitrary
-        return $ updateTilesAt (updateTilesAt b $ ps `zip` ts) (ps `zip` ts') `shouldBe` updateTilesAt b (ps `zip` ts')
+      it "returns the same result Board that results from only updating the Board a second time" $ property $
+        forAll (arbitrary) $ \b ->
+        forAll (fmap (unzip3 . nubBy ((==) `on` fst3)) arbitrary) $ \(ps, ts, ts') ->
+          updateTilesAt (updateTilesAt b $ ps `zip` ts) (ps `zip` ts') `shouldBe` updateTilesAt b (ps `zip` ts')
 
   describe "findOptionalTiles" $ do
-    it "returns a list of Positions such that every Position in the list contains an optional Tile" $ property $ do
+    it "returns a list of Positions such that every Position in the list contains an optional Tile" $ property $
       \b -> findOptionalTiles b `shouldSatisfy` all (isOptional . tileAt b)
-    it "returns a list of Positions such that every Position not in the list contains a non-optional Tile" $ property $ do
+    it "returns a list of Positions such that every Position not in the list contains a non-optional Tile" $ property $
       \b -> positionsByColumn \\ findOptionalTiles b `shouldSatisfy` all (not . isOptional . tileAt b)
 
   describe "findRequiredTiles" $ do
-    it "returns a list of Positions such that every Position in the list contains a non-trivial Tile" $ property $ do
+    it "returns a list of Positions such that every Position in the list contains a non-trivial Tile" $ property $
       \b -> findRequiredTiles b `shouldSatisfy` all (isRequired . tileAt b)
-    it "returns a list of Positions such that every Position not in the list contains a trivial Tile" $ property $ do
+    it "returns a list of Positions such that every Position not in the list contains a trivial Tile" $ property $
       \b -> positionsByColumn \\ findRequiredTiles b `shouldSatisfy` all (not . isRequired . tileAt b)
 
   describe "sumOfTilesAt" $
-    it "returns the sumOfTiles in the tiles at the given list of positions" $ property $ do
-      b         <- arbitrary
-      (ps, ts)  <- distinctAssocsTuple
-      let b'     = updateTilesAt b $ ps `zip` ts
-      return $ sumOfTilesAt b' ps `shouldBe` sumOfTiles ts
+    it "returns the sumOfTiles in the tiles at the given list of positions" $ property $
+      forAll (arbitrary) $ \b ->
+      forAll (distinctAssocsTuple) $ \(ps, ts) ->
+      let b' = updateTilesAt b $ ps `zip` ts in
+        sumOfTilesAt b' ps `shouldBe` sumOfTiles ts
 
   describe "sumOfTilesAtAxis" $
-    it "returns the number of Voltorbs in the tiles in the given Axis" $ property $ do
-      b     <- arbitrary
-      c     <- arbitrary
-      ts    <- vectorOf 5 arbitrary
-      let b' = updateTilesAt b $ axis c `zip` ts
-      return $ sumOfTilesAtAxis b' c `shouldBe` sumOfTiles ts
+    it "returns the number of Voltorbs in the tiles in the given Axis" $ property $
+      forAll (arbitrary) $ \b ->
+      forAll (arbitrary) $ \c ->
+      forAll (vectorOf 5 arbitrary) $ \ts ->
+      let b' = updateTilesAt b $ axis c `zip` ts in
+        sumOfTilesAtAxis b' c `shouldBe` sumOfTiles ts
 
   describe "numberOfVoltorbsAt" $
-    it "returns the numberOfVoltorbs in the tiles at the given list of positions" $ property $ do
-      b         <- arbitrary
-      (ps, ts)  <- distinctAssocsTuple
-      let b'  = updateTilesAt b $ ps `zip` ts
-      return $ numberOfVoltorbsAt b' ps `shouldBe` numberOfVoltorbs ts
+    it "returns the numberOfVoltorbs in the tiles at the given list of positions" $ property $
+      forAll (arbitrary) $ \b ->
+      forAll (distinctAssocsTuple) $ \(ps, ts) ->
+      let b' = updateTilesAt b $ ps `zip` ts in
+        numberOfVoltorbsAt b' ps `shouldBe` numberOfVoltorbs ts
 
   describe "numberOfVoltorbsAtAxis" $
-    it "returns the number of Voltorbs in the Tiles in the given Axis" $ property $ do
-      b     <- arbitrary
-      a     <- arbitrary
-      ts    <- vectorOf 5 arbitrary
-      let b' = updateTilesAt b $ axis a `zip` ts
-      return $ numberOfVoltorbsAtAxis b' a `shouldBe` numberOfVoltorbs ts
+    it "returns the number of Voltorbs in the Tiles in the given Axis" $ property $
+      forAll (arbitrary) $ \b ->
+      forAll (arbitrary) $ \a ->
+      forAll (vectorOf 5 arbitrary) $ \ts ->
+      let b' = updateTilesAt b $ axis a `zip` ts in
+        numberOfVoltorbsAtAxis b' a `shouldBe` numberOfVoltorbs ts
 
   describe "clueAtAxis" $ do
-    it "returns a Clue with the sum of Tiles at the given Axis of the Board" $ property $ do
+    it "returns a Clue with the sum of Tiles at the given Axis of the Board" $ property $
       \b a -> getSumOfTiles (clueAtAxis b a) `shouldBe` sumOfTilesAtAxis b a
-    it "returns a Clue with the number of Voltorbs at the given Axis of the Board" $ property $ do
+    it "returns a Clue with the number of Voltorbs at the given Axis of the Board" $ property $
       \b a -> getNumberOfVoltorbs (clueAtAxis b a) `shouldBe` numberOfVoltorbsAtAxis b a
 
   describe "cluesFor" $ do
-    it "returns Clues containing the Clue for each Axis" $ property $ do
+    it "returns Clues containing the Clue for each Axis" $ property $
       \b a -> cluesFor b `clueAt` a `shouldBe` clueAtAxis b a

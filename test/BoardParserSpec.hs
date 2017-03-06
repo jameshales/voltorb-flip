@@ -11,5 +11,5 @@ import BoardSpec ()
 spec :: Spec
 spec = do
   describe "pBoard" $ do
-    it "inverts show" $ property $ do
+    it "inverts show" $ property $
       \b -> parse pBoard "" (show b) `shouldBe` Right b
