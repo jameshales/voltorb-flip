@@ -1,36 +1,28 @@
 module CluesSpec (spec) where
 
 import Control.Exception (evaluate)
-import Data.Array (Array, array, listArray)
 import Test.Hspec
 import Test.QuickCheck
 
-import Axis (Axis, axes)
-import Clue (Clue)
 import Clues
 
+import ArrayGenerators (completeBoundedArray, incompleteBoundedArray)
 import AxisSpec ()
 import ClueSpec ()
 
-cluesArray :: Gen (Array Axis Clue)
-cluesArray = fmap (array (minBound, maxBound) . zip axes) $ infiniteListOf arbitrary
-
 instance Arbitrary Clues where
-  arbitrary = fmap clues cluesArray
+  arbitrary = clues <$> completeBoundedArray
 
 spec :: Spec
 spec = do
   describe "clues" $ do
     context "given a valid Array of Clues" $ do
       it "is inverted by unClues" $ property $ do
-        a <- cluesArray
+        a <- completeBoundedArray
         return $ unClues (clues a) `shouldBe` a
     context "given an Array with bounds not equal to (minBound, maxBound)" $ do
       it "returns an error" $ property $ do
-        let invalidBounds = (/= (minBound, maxBound))
-        bounds  <- arbitrary `suchThat` invalidBounds
-        ts      <- vectorOf 10 arbitrary
-        let arr  = listArray bounds ts
+        arr <- incompleteBoundedArray
         return $ evaluate (clues arr) `shouldThrow` errorCall "Array does not have full bounds"
 
   describe "clueAt" $ do

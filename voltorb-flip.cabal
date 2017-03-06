@@ -52,7 +52,8 @@ test-suite voltorb-flip-test
                      , voltorb-flip
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N -fno-warn-orphans
   default-language:    Haskell2010
-  other-modules:       AxisSpec
+  other-modules:       ArrayGenerators
+                     , AxisSpec
                      , BoardSpec
                      , BoardParserSpec
                      , ClueSpec

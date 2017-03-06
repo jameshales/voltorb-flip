@@ -1,7 +1,6 @@
 module BoardSpec (spec) where
 
 import Control.Exception (evaluate)
-import Data.Array (Array, array, listArray)
 import Data.Function (on)
 import Data.List (nubBy, (\\))
 import Test.Hspec
@@ -10,23 +9,15 @@ import Test.QuickCheck
 import Board
 import Clue (Clue(..))
 import Clues (clueAt)
-import Position (Position, axis, positionsByColumn)
-import Tile (Tile, isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
+import Position (axis, positionsByColumn)
+import Tile (isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
 
+import ArrayGenerators (completeBoundedArray, incompleteBoundedArray, distinctAssocsTuple)
 import TileSpec ()
 import PositionSpec ()
 
-boardArray :: Gen (Array Position Tile)
-boardArray = fmap (array (minBound, maxBound) . zip positionsByColumn) $ infiniteListOf arbitrary
-
 instance Arbitrary Board where
-  arbitrary = fmap board boardArray
-
-boardAssocs :: Gen [(Position, Tile)]
-boardAssocs = fmap (nubBy ((==) `on` fst)) arbitrary
-
-boardAssocsTuple :: Gen ([Position], [Tile])
-boardAssocsTuple = fmap unzip boardAssocs
+  arbitrary = board <$> completeBoundedArray
 
 fst3 :: (a, b, c) -> a
 fst3 (a, _, _) = a
@@ -36,14 +27,11 @@ spec = do
   describe "board" $ do
     context "given a valid Array of Tiles" $ do
       it "is inverted by unBoard" $ property $ do
-        a <- boardArray
+        a <- completeBoundedArray
         return $ unBoard (board a) `shouldBe` a
     context "given an Array with bounds less than (minBound, maxBound)" $ do
       it "returns an error" $ property $ do
-        let invalidBounds = (/= (minBound, maxBound))
-        bounds  <- arbitrary `suchThat` invalidBounds
-        ts      <- vectorOf 25 arbitrary
-        let arr  = listArray bounds ts
+        arr  <- incompleteBoundedArray
         return $ evaluate (board arr) `shouldThrow` errorCall "Array does not have full bounds"
 
   describe "tileAt" $ do
@@ -65,7 +53,7 @@ spec = do
     context "getting the Tiles at some Positions of a Board that were just updated" $ do
       it "returns the Tiles that were updated" $ property $ do
         b         <- arbitrary
-        (ps, ts)  <- boardAssocsTuple
+        (ps, ts)  <- distinctAssocsTuple
         return $ tilesAt (updateTilesAt b $ ps `zip` ts) ps `shouldBe` ts
 
   describe "updateTilesAt" $ do
@@ -95,7 +83,7 @@ spec = do
   describe "sumOfTilesAt" $
     it "returns the sumOfTiles in the tiles at the given list of positions" $ property $ do
       b         <- arbitrary
-      (ps, ts)  <- boardAssocsTuple
+      (ps, ts)  <- distinctAssocsTuple
       let b'     = updateTilesAt b $ ps `zip` ts
       return $ sumOfTilesAt b' ps `shouldBe` sumOfTiles ts
 
@@ -110,7 +98,7 @@ spec = do
   describe "numberOfVoltorbsAt" $
     it "returns the numberOfVoltorbs in the tiles at the given list of positions" $ property $ do
       b         <- arbitrary
-      (ps, ts)  <- boardAssocsTuple
+      (ps, ts)  <- distinctAssocsTuple
       let b'  = updateTilesAt b $ ps `zip` ts
       return $ numberOfVoltorbsAt b' ps `shouldBe` numberOfVoltorbs ts
 

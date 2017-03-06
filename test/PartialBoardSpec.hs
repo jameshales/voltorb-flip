@@ -7,7 +7,6 @@ module PartialBoardSpec
   ) where
 
 import Control.Exception (evaluate)
-import Data.Array (Array, array, listArray)
 import Data.Function (on)
 import Data.List (nubBy)
 import Test.Hspec
@@ -15,25 +14,16 @@ import Test.QuickCheck
 
 import Board (Board, cluesFor, findOptionalTiles, findRequiredTiles, tileAt, tilesAt)
 import PartialBoard
-import Position (Position, positionsByColumn)
-import Tile (Tile)
+import Position (positionsByColumn)
 
+import ArrayGenerators (completeBoundedArray, incompleteBoundedArray, distinctAssocsTuple)
 import BoardSpec ()
 import CluesSpec ()
 import PositionSpec ()
 import TileSpec ()
 
-partialBoardArray :: Gen (Array Position (Maybe Tile))
-partialBoardArray = fmap (array (minBound, maxBound) . zip positionsByColumn) $ infiniteListOf arbitrary
-
 instance Arbitrary PartialBoard where
-  arbitrary = fmap partialBoard partialBoardArray
-
-partialBoardAssocs :: Gen [(Position, Maybe Tile)]
-partialBoardAssocs = fmap (nubBy ((==) `on` fst)) arbitrary
-
-partialBoardAssocsTuple :: Gen ([Position], [Maybe Tile])
-partialBoardAssocsTuple = fmap unzip partialBoardAssocs
+  arbitrary = partialBoard <$> completeBoundedArray
 
 consistentPartialBoard :: Gen (Board, PartialBoard)
 consistentPartialBoard = do
@@ -59,7 +49,8 @@ completePartialBoard = do
 incompletePartialBoard :: Gen (Board, PartialBoard)
 incompletePartialBoard = do
   b  <- arbitrary `suchThat` (not . null . findRequiredTiles)
-  ps <- let ns = findRequiredTiles b in (++) <$> sublistOf (findOptionalTiles b) <*> sublistOf ns `suchThat` (/=) ns
+  ps <- let ns = findRequiredTiles b in
+    (++) <$> sublistOf (findOptionalTiles b) <*> sublistOf ns `suchThat` (/=) ns
   let pb = flipTilesAtWith emptyBoard b ps
   return (b, pb)
 
@@ -71,12 +62,11 @@ spec = do
   describe "partialBoard" $ do
     context "given a valid Array of Maybe Tiles" $ do
       it "is inverted by unPartialBoard" $ property $ do
-        a <- partialBoardArray
+        a <- completeBoundedArray
         return $ unPartialBoard (partialBoard a) `shouldBe` a
     context "given an Array with bounds less than (minBound, maxBound)" $ do
       it "returns an error" $ property $ do
-        let invalidBounds = (/=) (minBound, maxBound)
-        arr <- listArray <$> arbitrary `suchThat` invalidBounds <*> infiniteListOf arbitrary
+        arr <- incompleteBoundedArray
         return $ evaluate (partialBoard arr) `shouldThrow` errorCall "Array does not have full bounds"
 
   describe "emptyBoard" $
@@ -102,7 +92,7 @@ spec = do
     context "getting the Maybe Tiles at some Positions of a PartialBoard that were just updated" $ do
       it "returns the Tiles that were updated" $ property $ do
         pb <- arbitrary
-        (ps, mts) <- partialBoardAssocsTuple
+        (ps, mts) <- distinctAssocsTuple
         return $ maybeTilesAt (updateMaybeTilesAt pb $ ps `zip` mts) ps `shouldBe` mts
 
   describe "updateMaybeTilesAt" $ do
