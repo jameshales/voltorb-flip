@@ -45,7 +45,7 @@ spec = do
     describe "toEnum" $ do
       context "when the value is less than 0" $ do
         it "returns an error" $ property $
-          forAll (choose (minBound, 0)) $ \i ->
+          forAll (choose (minBound, -1)) $ \i ->
             evaluate (toEnum i :: Axis) `shouldThrow` outOfBoundsError
       context "when the value is greater than 9" $
         it "returns an error" $ property $
