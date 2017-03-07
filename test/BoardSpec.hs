@@ -10,7 +10,7 @@ import Board
 import Clue (Clue(..))
 import Clues (clueAt)
 import Position (axis, positionsByColumn)
-import Tile (isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
+import Tile (isVoltorb, isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
 
 import ArrayGenerators (completeBoundedArray, incompleteBoundedArray, distinctAssocsTuple)
 import TileSpec ()
@@ -67,6 +67,12 @@ spec = do
         forAll (arbitrary) $ \b ->
         forAll (fmap (unzip3 . nubBy ((==) `on` fst3)) arbitrary) $ \(ps, ts, ts') ->
           updateTilesAt (updateTilesAt b $ ps `zip` ts) (ps `zip` ts') `shouldBe` updateTilesAt b (ps `zip` ts')
+
+  describe "findVoltorbTiles" $ do
+    it "returns a list of Positions such that every Position in the list contains an Voltorb Tile" $ property $
+      \b -> findVoltorbTiles b `shouldSatisfy` all (isVoltorb . tileAt b)
+    it "returns a list of Positions such that every Position not in the list contains a non-Voltorb Tile" $ property $
+      \b -> positionsByColumn \\ findVoltorbTiles b `shouldSatisfy` all (not . isVoltorb . tileAt b)
 
   describe "findOptionalTiles" $ do
     it "returns a list of Positions such that every Position in the list contains an optional Tile" $ property $

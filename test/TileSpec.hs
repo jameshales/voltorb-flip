@@ -53,18 +53,32 @@ spec = do
         i <- choose (0, 3)
         return $ unTile (tile i) `shouldBe` i
 
+  describe "isVoltorb" $ do
+    context "given a 0-Tile" $ do
+      it "returns True" $
+        isVoltorb (tile 0) `shouldBe` True
+    context "given a 1-Tile" $ do
+      it "returns False" $
+        isVoltorb (tile 1) `shouldBe` False
+    context "given a 2-Tile" $ do
+      it "returns False" $
+        isVoltorb (tile 2) `shouldBe` False
+    context "given a 3-Tile" $ do
+      it "returns False" $
+        isVoltorb (tile 3) `shouldBe` False
+
   describe "isOptional" $ do
     context "given a 0-Tile" $ do
       it "returns False" $
         isOptional (tile 0) `shouldBe` False
     context "given a 1-Tile" $ do
-      it "returns False" $
+      it "returns True" $
         isOptional (tile 1) `shouldBe` True
     context "given a 2-Tile" $ do
-      it "returns True" $
+      it "returns False" $
         isOptional (tile 2) `shouldBe` False
     context "given a 3-Tile" $ do
-      it "returns True" $
+      it "returns False" $
         isOptional (tile 3) `shouldBe` False
 
   describe "isRequired" $ do

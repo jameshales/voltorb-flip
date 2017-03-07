@@ -3,6 +3,7 @@ module Tile
   , tile
   , unTile
   , voltorb
+  , isVoltorb
   , isOptional
   , isRequired
   , tiles
@@ -42,9 +43,13 @@ unTile (Tile x) = x
 voltorb :: Tile
 voltorb = tile 0
 
+-- Returns True iff the given Tile is a 0-Tile.
+isVoltorb :: Tile -> Bool
+isVoltorb = (== voltorb)
+
 -- Returns true iff the given Tile is a 1-Tile.
 isOptional :: Tile -> Bool
-isOptional = (== 1) . unTile
+isOptional = (== tile 1)
 
 -- Returns true iff the given Tile is a 2- or 3-Tile
 isRequired :: Tile -> Bool

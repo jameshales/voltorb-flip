@@ -7,6 +7,7 @@ module Board
   , updateTileAt
   , tilesAt
   , updateTilesAt
+  , findVoltorbTiles
   , findOptionalTiles
   , findRequiredTiles
   , sumOfTilesAt
@@ -24,7 +25,7 @@ import Axis (Axis, axes)
 import Clue (Clue, clue)
 import Clues (Clues, clues)
 import Position (Position, axis, positionsByColumn, rows)
-import Tile (Tile, isOptional, isRequired, numberOfVoltorbs, sumOfTiles, unTile)
+import Tile (Tile, isVoltorb, isOptional, isRequired, numberOfVoltorbs, sumOfTiles, unTile)
 
 -- A 5x5 Board of Tiles
 data Board = Board (Array Position Tile)
@@ -65,13 +66,21 @@ tilesAt b = map $ tileAt b
 updateTilesAt :: Board -> [(Position, Tile)] -> Board
 updateTilesAt b as = Board $ (// as) $ unBoard b
 
+-- Finds the Positions of a Board that satsify the given predicate.
+findTiles :: (Tile -> Bool) -> Board -> [Position]
+findTiles p b = filter (p . tileAt b) positionsByColumn
+
+-- Finds the Positions that contain 0-Tiles.
+findVoltorbTiles :: Board -> [Position]
+findVoltorbTiles = findTiles isVoltorb
+
 -- Finds the Positions that contain 1-Tiles.
 findOptionalTiles :: Board -> [Position]
-findOptionalTiles b = filter (isOptional . tileAt b) positionsByColumn
+findOptionalTiles = findTiles isOptional
 
 -- Finds the Positions that contain 2/3-Tiles.
 findRequiredTiles :: Board -> [Position]
-findRequiredTiles b = filter (isRequired . tileAt b) positionsByColumn
+findRequiredTiles = findTiles isRequired
 
 -- Returns the sum of all Tile values in the given Positions of a Board.
 sumOfTilesAt :: Board -> [Position] -> Int
