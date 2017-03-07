@@ -16,14 +16,14 @@ instance Arbitrary Clues where
 spec :: Spec
 spec = do
   describe "clues" $ do
-    context "given a valid Array of Clues" $ do
+    context "given an Array with complete bounds" $ do
       it "is inverted by unClues" $ property $
         forAll (completeBoundedArray) $ \a ->
           unClues (clues a) `shouldBe` a
-    context "given an Array with bounds not equal to (minBound, maxBound)" $ do
+    context "given an Array with incomplete bounds" $ do
       it "returns an error" $ property $
         forAll (incompleteBoundedArray) $ \arr ->
-          evaluate (clues arr) `shouldThrow` errorCall "Array does not have full bounds"
+          evaluate (clues arr) `shouldThrow` errorCall "Array does not have complete bounds"
 
   describe "clueAt" $ do
     context "getting the Clue for an Axis of some Clues that were just updated" $ do

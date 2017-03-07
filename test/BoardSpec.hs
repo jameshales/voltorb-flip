@@ -25,14 +25,14 @@ fst3 (a, _, _) = a
 spec :: Spec
 spec = do
   describe "board" $ do
-    context "given a valid Array of Tiles" $ do
+    context "given an Array with complete bounds" $ do
       it "is inverted by unBoard" $ property $
         forAll (completeBoundedArray) $ \a ->
           unBoard (board a) `shouldBe` a
-    context "given an Array with bounds less than (minBound, maxBound)" $ do
+    context "given an Array with incomplete bounds" $ do
       it "returns an error" $ property $
         forAll (incompleteBoundedArray) $ \arr ->
-          evaluate (board arr) `shouldThrow` errorCall "Array does not have full bounds"
+          evaluate (board arr) `shouldThrow` errorCall "Array does not have complete bounds"
 
   describe "tileAt" $ do
     context "getting the Tile at a Position of a Board that was just updated" $ do

@@ -42,7 +42,7 @@ isValidBoard b = bounds (unBoard b) == (minBound, maxBound)
 -- Constructor for a Board.
 board :: Array Position Tile -> Board
 board a | isValidBoard b = b
-        | otherwise      = error "Array does not have full bounds"
+        | otherwise      = error "Array does not have complete bounds"
             where b = Board a
 
 -- Deconstructor for a Board.

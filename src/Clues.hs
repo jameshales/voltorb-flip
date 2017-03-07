@@ -22,7 +22,7 @@ isValidClues c = bounds (unClues c) == (minBound, maxBound)
 -- Constructor for Clues.
 clues :: Array Axis Clue -> Clues
 clues arr | isValidClues c  = c
-          | otherwise       = error "Array does not have full bounds"
+          | otherwise       = error "Array does not have complete bounds"
               where c = Clues arr
 
 -- Deconstructor for Clues.

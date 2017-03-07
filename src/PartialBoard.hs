@@ -42,7 +42,7 @@ isValidPartialBoard pb = bounds (unPartialBoard pb) == (minBound, maxBound)
 -- Constructor for a PartialBoard
 partialBoard :: Array Position (Maybe Tile) -> PartialBoard
 partialBoard a | isValidPartialBoard pb = pb
-               | otherwise              = error "Array does not have full bounds"
+               | otherwise              = error "Array does not have complete bounds"
                   where pb = PartialBoard a
 
 -- Deconstructor for a PartialBoard

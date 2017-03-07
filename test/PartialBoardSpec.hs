@@ -60,14 +60,14 @@ fst3 (a, _, _) = a
 spec :: Spec
 spec = do
   describe "partialBoard" $ do
-    context "given a valid Array of Maybe Tiles" $ do
+    context "given an Array with incomplete bounds" $ do
       it "is inverted by unPartialBoard" $ property $
         forAll (completeBoundedArray) $ \a ->
           unPartialBoard (partialBoard a) `shouldBe` a
-    context "given an Array with bounds less than (minBound, maxBound)" $ do
+    context "given an Array with complete bounds" $ do
       it "returns an error" $ property $
         forAll (incompleteBoundedArray) $ \arr ->
-          evaluate (partialBoard arr) `shouldThrow` errorCall "Array does not have full bounds"
+          evaluate (partialBoard arr) `shouldThrow` errorCall "Array does not have complete bounds"
 
   describe "emptyBoard" $
     it "contains Nothing" $ property $
