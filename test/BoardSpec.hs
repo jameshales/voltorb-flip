@@ -7,10 +7,9 @@ import Test.Hspec
 import Test.QuickCheck
 
 import Board
-import Clue (Clue(..))
 import Clues (clueAt)
 import Position (axis, positionsByColumn)
-import Tile (isVoltorb, isOptional, isRequired, numberOfVoltorbs, sumOfTiles)
+import Tile (clueFor, isVoltorb, isOptional, isRequired)
 
 import ArrayGenerators (completeBoundedArray, incompleteBoundedArray, distinctAssocsTuple)
 import TileSpec ()
@@ -86,42 +85,6 @@ spec = do
     it "returns a list of Positions such that every Position not in the list contains a trivial Tile" $ property $
       \b -> positionsByColumn \\ findRequiredTiles b `shouldSatisfy` all (not . isRequired . tileAt b)
 
-  describe "sumOfTilesAt" $
-    it "returns the sumOfTiles in the tiles at the given list of positions" $ property $
-      forAll (arbitrary) $ \b ->
-      forAll (distinctAssocsTuple) $ \(ps, ts) ->
-      let b' = updateTilesAt b $ ps `zip` ts in
-        sumOfTilesAt b' ps `shouldBe` sumOfTiles ts
-
-  describe "sumOfTilesAtAxis" $
-    it "returns the number of Voltorbs in the tiles in the given Axis" $ property $
-      forAll (arbitrary) $ \b ->
-      forAll (arbitrary) $ \c ->
-      forAll (vectorOf 5 arbitrary) $ \ts ->
-      let b' = updateTilesAt b $ axis c `zip` ts in
-        sumOfTilesAtAxis b' c `shouldBe` sumOfTiles ts
-
-  describe "numberOfVoltorbsAt" $
-    it "returns the numberOfVoltorbs in the tiles at the given list of positions" $ property $
-      forAll (arbitrary) $ \b ->
-      forAll (distinctAssocsTuple) $ \(ps, ts) ->
-      let b' = updateTilesAt b $ ps `zip` ts in
-        numberOfVoltorbsAt b' ps `shouldBe` numberOfVoltorbs ts
-
-  describe "numberOfVoltorbsAtAxis" $
-    it "returns the number of Voltorbs in the Tiles in the given Axis" $ property $
-      forAll (arbitrary) $ \b ->
-      forAll (arbitrary) $ \a ->
-      forAll (vectorOf 5 arbitrary) $ \ts ->
-      let b' = updateTilesAt b $ axis a `zip` ts in
-        numberOfVoltorbsAtAxis b' a `shouldBe` numberOfVoltorbs ts
-
-  describe "clueAtAxis" $ do
-    it "returns a Clue with the sum of Tiles at the given Axis of the Board" $ property $
-      \b a -> getSumOfTiles (clueAtAxis b a) `shouldBe` sumOfTilesAtAxis b a
-    it "returns a Clue with the number of Voltorbs at the given Axis of the Board" $ property $
-      \b a -> getNumberOfVoltorbs (clueAtAxis b a) `shouldBe` numberOfVoltorbsAtAxis b a
-
   describe "cluesFor" $ do
     it "returns Clues containing the Clue for each Axis" $ property $
-      \b a -> cluesFor b `clueAt` a `shouldBe` clueAtAxis b a
+      \b a -> cluesFor b `clueAt` a `shouldBe` (clueFor $ tilesAt b $ axis a)

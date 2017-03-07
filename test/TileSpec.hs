@@ -5,6 +5,7 @@ import Data.List (nub, sort)
 import Test.Hspec
 import Test.QuickCheck
 
+import Clue (Clue(..))
 import Tile
 
 instance Arbitrary Tile where
@@ -122,3 +123,12 @@ spec = do
       context "if the head of the list isn't a Voltorb" $
         it "adds 1 to the numberOfVoltorbs in the tail of the list" $ property $
           \ts -> numberOfVoltorbs (voltorb:ts) `shouldBe` numberOfVoltorbs ts + 1
+
+  describe "clueFor" $ do
+    context "given a list of 5 Tiles" $ do
+      it "returns a Clue containing the sumOfTiles for the list of Tiles" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+          getSumOfTiles (clueFor ts) `shouldBe` sumOfTiles ts
+      it "returns a Clue containing the numberOfVoltorbs for the list of Tiles" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+          getNumberOfVoltorbs (clueFor ts) `shouldBe` numberOfVoltorbs ts

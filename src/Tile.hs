@@ -12,9 +12,12 @@ module Tile
   , numberOfFlippedTiles
   , numberOfFlippedVoltorbs
   , sumOfFlippedTiles
+  , clueFor
   ) where
 
 import Data.Maybe (catMaybes)
+
+import Clue (Clue, clue)
 
 -- A Tile on a Board can be a 0 (Voltorb), 1, 2, or 3
 data Tile = Tile Int
@@ -78,3 +81,7 @@ numberOfFlippedVoltorbs = numberOfVoltorbs . catMaybes
 -- Sums the values of the flipped Tiles in the given list.
 sumOfFlippedTiles :: [Maybe Tile] -> Int
 sumOfFlippedTiles = sumOfTiles . catMaybes
+
+-- Calculates the Clue for a list of Tiles.
+clueFor :: [Tile] -> Clue
+clueFor ts = clue (sumOfTiles ts) (numberOfVoltorbs ts)

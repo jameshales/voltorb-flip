@@ -10,22 +10,16 @@ module Board
   , findVoltorbTiles
   , findOptionalTiles
   , findRequiredTiles
-  , sumOfTilesAt
-  , sumOfTilesAtAxis
-  , numberOfVoltorbsAt
-  , numberOfVoltorbsAtAxis
-  , clueAtAxis
   , cluesFor
   ) where
 
 import Data.Array (Array, array, bounds, (!), (//))
 import Data.Char (intToDigit)
 
-import Axis (Axis, axes)
-import Clue (Clue, clue)
+import Axis (axes)
 import Clues (Clues, clues)
 import Position (Position, axis, positionsByColumn, rows)
-import Tile (Tile, isVoltorb, isOptional, isRequired, numberOfVoltorbs, sumOfTiles, unTile)
+import Tile (Tile, clueFor, isVoltorb, isOptional, isRequired, unTile)
 
 -- A 5x5 Board of Tiles
 data Board = Board (Array Position Tile)
@@ -82,26 +76,6 @@ findOptionalTiles = findTiles isOptional
 findRequiredTiles :: Board -> [Position]
 findRequiredTiles = findTiles isRequired
 
--- Returns the sum of all Tile values in the given Positions of a Board.
-sumOfTilesAt :: Board -> [Position] -> Int
-sumOfTilesAt = (sumOfTiles .) . tilesAt
-
--- Returns the sum of all Tile values in the given Axis of a Board.
-sumOfTilesAtAxis :: Board -> Axis -> Int
-sumOfTilesAtAxis b = sumOfTilesAt b . axis
-
--- Returns the number of Voltorb Tiles in the given Positions of a Board.
-numberOfVoltorbsAt :: Board -> [Position] -> Int
-numberOfVoltorbsAt = (numberOfVoltorbs .) . tilesAt
-
--- Returns the number of Voltorb Tiles in the given Axis of a Board.
-numberOfVoltorbsAtAxis :: Board -> Axis -> Int
-numberOfVoltorbsAtAxis b = numberOfVoltorbsAt b . axis
-
--- Returns the Clue for the given Axis of a Board.
-clueAtAxis :: Board -> Axis -> Clue
-clueAtAxis b a = clue (sumOfTilesAtAxis b a) (numberOfVoltorbsAtAxis b a)
-
 -- Returns the Clues for all Axes of a Board.
 cluesFor :: Board -> Clues
-cluesFor b = clues $ array (minBound, maxBound) $ map (\a -> (a, clueAtAxis b a)) axes
+cluesFor b = clues $ array (minBound, maxBound) $ map (\a -> (a, clueFor $ tilesAt b $ axis a)) axes
