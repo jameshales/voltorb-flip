@@ -1,18 +1,35 @@
 module TileSpec (spec) where
 
 import Control.Exception (ErrorCall, evaluate)
+import Control.Monad (mapM)
 import Data.List (nub, sort)
+import qualified Data.Set as Set (empty, member, singleton)
 import Test.Hspec
 import Test.QuickCheck
 
-import Clue (Clue(..))
+import Clue (Clue(..), clue)
 import Tile
+
+import ClueSpec ()
 
 instance Arbitrary Tile where
   arbitrary = elements tiles
 
 outOfBoundsError :: Selector ErrorCall
 outOfBoundsError = errorCall "Tile out of bounds"
+
+consistentFlippedTiles :: [Tile] -> Gen [Maybe Tile]
+consistentFlippedTiles ts = mapM (\t -> elements [Nothing, Just t]) ts
+
+inconsistentFlippedTiles :: [Tile] -> Gen [Maybe Tile]
+inconsistentFlippedTiles ts = (vectorOf (length ts) arbitrary) `suchThat` (any (uncurry inconsistent) . zip ts)
+  where inconsistent t mt = mt /= Nothing && mt /= Just t
+
+flippedTiles :: [Tile] -> Gen [Maybe Tile]
+flippedTiles ts = oneof [consistentFlippedTiles ts, inconsistentFlippedTiles ts]
+
+strictPrefixOf :: [a] -> Gen [a]
+strictPrefixOf xs = flip take xs <$> choose (0, length xs - 1)
 
 spec :: Spec
 spec = do
@@ -132,3 +149,119 @@ spec = do
       it "returns a Clue containing the numberOfVoltorbs for the list of Tiles" $ property $
         forAll (vectorOf 5 arbitrary) $ \ts ->
           getNumberOfVoltorbs (clueFor ts) `shouldBe` numberOfVoltorbs ts
+
+  describe "isConsistentWithClue" $ do
+    context "given a list of Tiles and the matching Clue" $ do
+      it "returns True" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        let c = clueFor ts in
+          isConsistentWithClue c ts `shouldBe` True
+    context "given a list of Tiles and a non-matching Clue" $ do
+      it "returns False" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        let c = clueFor ts in
+        forAll (arbitrary `suchThat` (/= c)) $ \c' ->
+          isConsistentWithClue c' ts `shouldBe` False
+
+  describe "isConsistentWithFlippedTiles" $ do
+    context "given a list of unflipped Tiles" $ do
+      it "returns True" $ property $ \ts ->
+        let mts = map (const Nothing) ts in
+          isConsistentWithFlippedTiles mts ts `shouldBe` True
+    context "given a list of Tiles with the same length as and consistent with the given list of flipped Tiles" $ do
+      it "returns True" $ property $ \ts ->
+        forAll (consistentFlippedTiles ts) $ \mts ->
+          isConsistentWithFlippedTiles mts ts `shouldBe` True
+    context "given a list of Tiles shorter than the given list of flipped Tiles" $ do
+      it "returns False" $ property $
+        forAll (listOf1 arbitrary) $ \ts ->
+        forAll (flippedTiles ts) $ \mts ->
+        forAll (strictPrefixOf ts) $ \ts' ->
+          isConsistentWithFlippedTiles mts ts' `shouldBe` False
+    context "given a list of Tiles longer than the given list of flipped Tiles" $ do
+      it "returns False" $ property $
+        forAll (listOf1 arbitrary) $ \ts ->
+        forAll (flippedTiles ts) $ \mts ->
+        forAll (strictPrefixOf mts) $ \mts' ->
+          isConsistentWithFlippedTiles mts' ts `shouldBe` False
+    context "given a list of Tiles inconsistent with the given flipped Tiles" $ do
+      it "returns False" $ property $
+        forAll (listOf1 arbitrary) $ \ts ->
+        forAll (inconsistentFlippedTiles ts) $ \mts ->
+          isConsistentWithFlippedTiles mts ts `shouldBe` False
+
+  describe "allFlippedTiles" $ do
+    context "given an empty list" $ do
+      it "returns a list containing an empty list" $ do
+        allFlippedTiles [] `shouldBe` [[]]
+    context "given a list of flipped Tiles" $ do
+      it "returns a list containing the given list of flipped Tiles" $ property $ \ts ->
+        let mts = map Just ts in
+          allFlippedTiles mts `shouldBe` [ts]
+    context "given a list of partially flipped Tiles" $ do
+      it "returns a list of 4^N lists of Tiles, where N is the number of unflipped Tiles" $ property $
+        forAll (choose (0, 5)) $ \m ->
+        forAll (vectorOf m arbitrary) $ \mts ->
+        let n = length $ filter (== Nothing) mts in
+          allFlippedTiles mts `shouldSatisfy` (== 4^n) . length
+      it "returns a list of distinct lists of Tiles" $ property $
+        forAll (choose (0, 5)) $ \m ->
+        forAll (vectorOf m arbitrary) $ \mts ->
+          nub (allFlippedTiles mts) `shouldBe` allFlippedTiles mts
+      it "returns a list of lists of Tiles that are consistent with the given list of flipped Tiles" $ property $
+        forAll (choose (0, 5)) $ \m ->
+        forAll (vectorOf m arbitrary) $ \mts ->
+          allFlippedTiles mts `shouldSatisfy` all (isConsistentWithFlippedTiles mts)
+
+  describe "allConsistentFlippedTiles" $ do
+    context "given an empty list and a zero Clue" $ do
+      it "returns a list containing an empty list" $ do
+        allConsistentFlippedTiles [] (clue 0 0) `shouldBe` [[]]
+    context "given an empty list and a non-zero Clue" $ do
+      it "returns an empty list" $ property $ \c ->
+        c /= (clue 0 0) ==> allConsistentFlippedTiles [] c `shouldBe` []
+    context "given a list of flipped Tiles and the corresponding Clue" $ do
+      it "returns a list containing the given list of flipped Tiles" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        let mts = map Just ts in
+        let c   = clueFor ts in
+          allConsistentFlippedTiles mts c `shouldBe` [ts]
+    context "given a list of partially flipped Tiles and the Clue corresponding to a list of Tiles" $ do
+      it "returns a list containing the original list of Tiles" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        forAll (consistentFlippedTiles ts) $ \mts ->
+        let c   = clueFor ts in
+          allConsistentFlippedTiles mts c `shouldSatisfy` elem ts
+
+  describe "allConsistentFlippedTileSets" $ do
+    context "given an empty list" $ do
+      it "returns an empty list" $ property $ \c ->
+        allConsistentFlippedTileSets [] c `shouldBe` []
+    context "given a list of partially flipped Tiles and a Clue" $ do
+      it "returns a list with the same length as the original list of Tiles" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        forAll (flippedTiles ts) $ \mts ->
+        let c   = clueFor ts in
+        let n   = length ts in
+          allConsistentFlippedTileSets mts c `shouldSatisfy` ((== n) . length)
+    context "given a list of flipped Tiles and the corresponding Clue" $ do
+      it "returns a list of singleton Sets corresponding to the flipped Tiles" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        let mts = map Just ts in
+        let tss = map (Set.singleton) ts in
+        let c   = clueFor ts in
+          allConsistentFlippedTileSets mts c `shouldBe` tss
+    context "given a list of flipped Tiles and a non-matching Clue" $ do
+      it "returns a list of empty Sets" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        let c   = clueFor ts in
+        forAll (arbitrary `suchThat` (/= c)) $ \c' ->
+        let mts = map Just ts in
+        let tss = map (const Set.empty) ts in
+          allConsistentFlippedTileSets mts c' `shouldBe` tss
+    context "given a list of partially flipped Tiles and the corresponding Clue" $ do
+      it "returns a list of Sets of Tiles that agree with the original list of Tiles" $ property $
+        forAll (vectorOf 5 arbitrary) $ \ts ->
+        forAll (consistentFlippedTiles ts) $ \mts ->
+        let c   = clueFor ts in
+          allConsistentFlippedTileSets mts c `shouldSatisfy` (all (uncurry Set.member) . zip ts)
