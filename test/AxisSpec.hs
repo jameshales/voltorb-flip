@@ -1,4 +1,8 @@
-module AxisSpec (spec) where
+module AxisSpec
+  ( spec
+  , genColumn
+  , genRow
+  ) where
 
 import Control.Exception (ErrorCall, evaluate)
 import Data.Ix
@@ -11,10 +15,10 @@ import Axis
 import CoordinateSpec ()
 
 genColumn :: Gen Axis
-genColumn = fmap Column arbitrary
+genColumn = Column <$> arbitrary
 
 genRow :: Gen Axis
-genRow = fmap Row arbitrary
+genRow = Row <$> arbitrary
 
 instance Arbitrary Axis where
   arbitrary = oneof [genColumn, genRow]

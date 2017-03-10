@@ -22,8 +22,10 @@ library
                      , Clues
                      , Coordinate
                      , Game
+                     , Inferences
                      , PartialBoard
                      , PartialBoardParser
+                     , PartialGame
                      , Position
                      , Tile
   build-depends:       base >= 4.7 && < 5
@@ -62,8 +64,10 @@ test-suite voltorb-flip-test
                      , CluesSpec
                      , CoordinateSpec
                      , GameSpec
+                     , InferencesSpec
                      , PartialBoardSpec
                      , PartialBoardParserSpec
+                     , PartialGameSpec
                      , PositionSpec
                      , TileSpec
 

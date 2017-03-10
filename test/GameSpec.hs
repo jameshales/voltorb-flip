@@ -1,4 +1,8 @@
-module GameSpec (spec) where
+module GameSpec
+  ( spec
+  , completeGame
+  , incompleteGame
+  ) where
 
 import Control.Exception (evaluate)
 import Test.Hspec

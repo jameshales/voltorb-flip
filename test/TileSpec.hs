@@ -1,4 +1,9 @@
-module TileSpec (spec) where
+module TileSpec
+  ( spec
+  , consistentFlippedTiles
+  , inconsistentFlippedTiles
+  , flippedTiles
+  ) where
 
 import Control.Exception (ErrorCall, evaluate)
 import Control.Monad (mapM)
